@@ -1,0 +1,26 @@
+# Core Framework (Flask chosen for simplicity with Vercel)
+flask==3.0.0
+flask-wtf==1.2.1
+python-dotenv==1.0.0
+
+# Database
+redis==5.0.1
+upstash-redis==1.0.0
+
+# OpenAI
+openai==1.35.0
+tenacity==8.2.3
+
+# Security
+bleach==6.1.0
+
+# Utilities
+pytz==2024.1
+pandas==2.2.0
+
+# Development
+pytest==8.0.0
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+black==24.1.0
+flake8==7.0.0
