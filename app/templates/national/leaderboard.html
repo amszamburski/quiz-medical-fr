@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Classement National{% endblock %}
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <h1>🏆 Classement National du Jour</h1>
+    <p style="text-align: center; color: #666; margin-bottom: 30px;">
+        Classement mis à jour en temps réel • Remise à zéro quotidienne
+    </p>
+
+    {% if leaderboard %}
+    <div style="background: #fff; border: 1px solid #dee2e6; border-radius: 5px;">
+        <div style="background: #007bff; color: white; padding: 15px; border-radius: 5px 5px 0 0;">
+            <h3>Équipes CHU</h3>
+        </div>
+        <div style="padding: 20px;">
+            {% for team_data in leaderboard %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; {% if loop.index <= 3 %}background: {% if loop.index == 1 %}#ffd700{% elif loop.index == 2 %}#c0c0c0{% else %}#cd7f32{% endif %}; color: white;{% else %}background: #f8f9fa;{% endif %} margin-bottom: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+                <div style="display: flex; align-items: center;">
+                    <span style="font-weight: bold; margin-right: 15px; font-size: 20px;">
+                        {% if loop.index == 1 %}🥇
+                        {% elif loop.index == 2 %}🥈
+                        {% elif loop.index == 3 %}🥉
+                        {% else %}{{ loop.index }}.
+                        {% endif %}
+                    </span>
+                    <div>
+                        <div style="font-size: 18px; font-weight: bold;">CHU {{ team_data.team_name }}</div>
+                        <div style="font-size: 14px; opacity: 0.8;">{{ team_data.player_count }} participant{% if team_data.player_count > 1 %}s{% endif %}</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 24px; font-weight: bold;">{{ team_data.average_score }}<span style="font-size: 16px;">/20</span></div>
+                    <div style="font-size: 12px; opacity: 0.8;">{{ team_data.total_score }} pts total</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 5px;">
+        <h3>Aucun score aujourd'hui</h3>
+        <p>Soyez le premier à participer au concours national !</p>
+        <a href="{{ url_for('national.index') }}" style="display: inline-block; margin-top: 15px; padding: 12px 24px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;">
+            Participer maintenant
+        </a>
+    </div>
+    {% endif %}
+
+    <div style="background: #e9ecef; padding: 15px; border-radius: 5px; margin-top: 30px;">
+        <h4>ℹ️ Comment fonctionne le classement ?</h4>
+        <ul style="margin: 10px 0;">
+            <li>Le score affiché est la <strong>moyenne</strong> des participants de chaque CHU</li>
+            <li>Plus votre CHU a de participants avec de bons scores, mieux il est classé</li>
+            <li>Le classement se remet à zéro automatiquement chaque jour</li>
+            <li>Seules les 3 meilleures équipes sont mises en avant</li>
+        </ul>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{{ url_for('national.index') }}" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;">
+            Participer
+        </a>
+        <a href="{{ url_for('main.index') }}" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px;">
+            Accueil
+        </a>
+    </div>
+</div>
+{% endblock %}

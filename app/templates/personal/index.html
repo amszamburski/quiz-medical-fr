@@ -2,6 +2,36 @@
 {% block title %}Concours Personnel{% endblock %}
 {% block content %}
 <h1>Concours Personnel</h1>
-<p>Sélectionnez votre thème</p>
-<a href="/">Retour</a>
+<p>Choisissez un sujet médical et testez vos connaissances avec 5 questions spécialisées !</p>
+
+<form method="POST" action="{{ url_for('personal.select_topic') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div style="margin: 20px 0;">
+        <label for="topic" style="display: block; margin-bottom: 10px; font-weight: bold;">Sélectionnez votre sujet :</label>
+        <select name="topic" id="topic" required style="padding: 10px; font-size: 16px; width: 300px; border: 1px solid #ccc; border-radius: 5px;">
+            <option value="">-- Choisissez un sujet --</option>
+            {% for topic in topics %}
+            <option value="{{ topic }}">{{ topic.replace('_', ' ').title() }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" style="padding: 12px 24px; background: #17a2b8; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
+        Commencer le Quiz
+    </button>
+</form>
+
+<div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+    <h3>Règles du Concours Personnel</h3>
+    <ul>
+        <li>5 questions spécialisées sur le sujet choisi</li>
+        <li>Score personnel affiché à la fin</li>
+        <li>Feedback détaillé après chaque question</li>
+        <li>Contenu éducatif avec références scientifiques</li>
+    </ul>
+</div>
+
+<p style="margin-top: 20px;">
+    <a href="{{ url_for('main.index') }}" style="color: #007bff;">Retour à l'accueil</a>
+</p>
 {% endblock %}

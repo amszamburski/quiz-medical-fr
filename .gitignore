@@ -40,3 +40,4 @@ Thumbs.db
 # Vercel
 .vercel
 .vercel_build_output/
+data/recommendations.csv

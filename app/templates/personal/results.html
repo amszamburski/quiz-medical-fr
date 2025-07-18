@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Résultats - Concours Personnel{% endblock %}
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <h1>📊 Résultats du Concours Personnel</h1>
+
+    <div style="background: {% if final_stats.average_score >= 15 %}#d4edda{% elif final_stats.average_score >= 10 %}#fff3cd{% else %}#f8d7da{% endif %}; padding: 20px; border-radius: 5px; margin-bottom: 30px;">
+        <h2>Votre Performance</h2>
+        <p><strong>Sujet:</strong> {{ topic.replace('_', ' ').title() }}</p>
+        <p><strong>Score total:</strong> {{ final_stats.total_score }}/{{ final_stats.max_possible }}</p>
+        <p><strong>Score moyen:</strong> {{ final_stats.average_score }}/20</p>
+        <p><strong>Pourcentage:</strong> {{ final_stats.percentage }}%</p>
+        <p><strong>Évaluation:</strong> {{ final_stats.category }}</p>
+    </div>
+
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 30px;">
+        <h3>📈 Analyse de votre performance</h3>
+        {% if final_stats.average_score >= 18 %}
+        <p>🎉 <strong>Excellent !</strong> Vous maîtrisez parfaitement ce sujet. Vos connaissances sont très solides.</p>
+        {% elif final_stats.average_score >= 15 %}
+        <p>👏 <strong>Très bien !</strong> Vous avez de bonnes connaissances sur ce sujet avec quelques détails à revoir.</p>
+        {% elif final_stats.average_score >= 12 %}
+        <p>👍 <strong>Bien !</strong> Vos bases sont correctes, continuez à approfondir vos connaissances.</p>
+        {% elif final_stats.average_score >= 8 %}
+        <p>📚 <strong>Moyen.</strong> Il serait bénéfique de réviser ce sujet plus en détail.</p>
+        {% else %}
+        <p>💪 <strong>À travailler.</strong> Ce sujet nécessite une révision approfondie pour améliorer vos connaissances.</p>
+        {% endif %}
+
+        <p style="margin-top: 15px;">
+            <em>Conseil :</em> Consultez les références scientifiques mentionnées dans les explications pour approfondir vos connaissances.
+        </p>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{{ url_for('personal.index') }}" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #17a2b8; color: white; text-decoration: none; border-radius: 5px;">
+            Choisir un autre sujet
+        </a>
+        <a href="{{ url_for('national.index') }}" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;">
+            Concours National
+        </a>
+        <a href="{{ url_for('main.index') }}" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px;">
+            Accueil
+        </a>
+    </div>
+</div>
+{% endblock %}

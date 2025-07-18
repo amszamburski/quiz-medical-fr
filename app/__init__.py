@@ -17,6 +17,12 @@ def create_app(config_name=None):
     app.config["WTF_CSRF_ENABLED"] = True
     app.config["WTF_CSRF_TIME_LIMIT"] = None
 
+    # Increase session cookie size limit
+    app.config["MAX_COOKIE_SIZE"] = 32768  # 32KB instead of default 4KB
+    app.config["SESSION_COOKIE_SECURE"] = False  # Set to True in production with HTTPS
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
     # Timezone configuration
     app.config["TIMEZONE"] = ZoneInfo("Europe/Paris")
 
