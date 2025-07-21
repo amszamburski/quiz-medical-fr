@@ -175,7 +175,7 @@ class Scoreboard:
 
                     # Sort by average score descending
                     leaderboard.sort(key=lambda x: x["average_score"], reverse=True)
-                    return leaderboard[:limit]
+                    return leaderboard[:limit] if limit else leaderboard
             except Exception as e:
                 print(f"Redis get_top_teams failed: {e}")
 
@@ -184,17 +184,29 @@ class Scoreboard:
             with sqlite3.connect(self.db_path) as conn:
                 # Get today's scores
                 today = datetime.now(self.timezone).date().isoformat()
-                cursor = conn.execute(
-                    """
-                    SELECT team_name, SUM(score) as total_score, COUNT(*) as player_count
-                    FROM team_scores
-                    WHERE DATE(timestamp) = DATE(?)
-                    GROUP BY team_name
-                    ORDER BY CAST(total_score AS FLOAT) / CAST(player_count AS FLOAT) DESC
-                    LIMIT ?
-                """,
-                    (today, limit),
-                )
+                if limit:
+                    cursor = conn.execute(
+                        """
+                        SELECT team_name, SUM(score) as total_score, COUNT(*) as player_count
+                        FROM team_scores
+                        WHERE DATE(timestamp) = DATE(?)
+                        GROUP BY team_name
+                        ORDER BY CAST(total_score AS FLOAT) / CAST(player_count AS FLOAT) DESC
+                        LIMIT ?
+                    """,
+                        (today, limit),
+                    )
+                else:
+                    cursor = conn.execute(
+                        """
+                        SELECT team_name, SUM(score) as total_score, COUNT(*) as player_count
+                        FROM team_scores
+                        WHERE DATE(timestamp) = DATE(?)
+                        GROUP BY team_name
+                        ORDER BY CAST(total_score AS FLOAT) / CAST(player_count AS FLOAT) DESC
+                    """,
+                        (today,),
+                    )
 
                 results = []
                 for row in cursor.fetchall():

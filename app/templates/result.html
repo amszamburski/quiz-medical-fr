@@ -1,20 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Résultat - Question {{ question_number }}{% endblock %}
+{% block title %}Résultat - Question{% endblock %}
 {% block content %}
 <div style="max-width: 800px; margin: 0 auto;">
     <div style="background: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
-        <h2>Résultat - Question {{ question_number }} / {{ total_questions }}</h2>
+        <h2>Résultat</h2>
     </div>
 
-    <div style="background: {% if evaluation.score_letter == 'A' %}#d4edda{% elif evaluation.score_letter == 'B' %}#fff3cd{% else %}#f8d7da{% endif %}; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-        <h3>Score: {{ evaluation.score_letter }}{% if evaluation.score_letter == 'A' %} (Excellent){% elif evaluation.score_letter == 'B' %} (Correct){% else %} (À revoir){% endif %}</h3>
+    <div style="background: {% if evaluation.score >= 4 %}#d4edda{% elif evaluation.score >= 3 %}#fff3cd{% else %}#f8d7da{% endif %}; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+        <h3>Score: {{ evaluation.score }}/5 {% if evaluation.score == 5 %} (Excellent){% elif evaluation.score == 4 %} (Très bien){% elif evaluation.score == 3 %} (Bien){% elif evaluation.score == 2 %} (Moyen){% else %} (Insuffisant){% endif %}</h3>
         <h4>Feedback</h4>
         <p>{{ evaluation.feedback }}</p>
     </div>
 
     {% if evaluation.educational_content %}
     <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-        <h3>📚 Contenu Éducatif</h3>
+        <h3>Contenu Éducatif</h3>
         <p style="line-height: 1.6;">{{ evaluation.educational_content }}</p>
 
         {% if evaluation.recommendation %}
@@ -31,21 +31,12 @@
     </div>
     {% endif %}
 
-    {% if question_number < total_questions %}
-    <form method="POST" action="{% if contest_type == 'national' %}{{ url_for('national.next_question') }}{% else %}{{ url_for('personal.next_question') }}{% endif %}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <button type="submit" style="padding: 12px 24px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-            Question suivante ({{ question_number + 1 }}/{{ total_questions }})
-        </button>
-    </form>
-    {% else %}
     <div style="text-align: center; margin-top: 30px;">
-        <h3>🎉 Quiz terminé !</h3>
+        <h3>Quiz terminé !</h3>
         <a href="{% if contest_type == 'national' %}{{ url_for('national.results') }}{% else %}{{ url_for('personal.results') }}{% endif %}"
            style="display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
             Voir les résultats finaux
         </a>
     </div>
-    {% endif %}
 </div>
 {% endblock %}

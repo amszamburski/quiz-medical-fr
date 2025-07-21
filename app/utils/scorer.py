@@ -23,8 +23,7 @@ def evaluate_answer(user_answer: str, question_data: Dict) -> Optional[Dict]:
         print("DEBUG: No answer or question data provided")
         return {
             "score": 0,
-            "score_letter": "C",
-            "feedback": "Aucune réponse fournie",
+            "feedback": "Aucune réponse fournie.",
             "educational_content": "Veuillez fournir une réponse pour recevoir un feedback.",
         }
 
@@ -47,7 +46,6 @@ def evaluate_answer(user_answer: str, question_data: Dict) -> Optional[Dict]:
             print("DEBUG: No evaluation returned")
             return {
                 "score": 0,
-                "score_letter": "C",
                 "feedback": "Erreur lors de l'évaluation",
                 "educational_content": "Erreur technique lors de l'évaluation.",
             }
@@ -64,7 +62,6 @@ def evaluate_answer(user_answer: str, question_data: Dict) -> Optional[Dict]:
 
         result = {
             "score": evaluation["score"],
-            "score_letter": evaluation.get("score_letter", "C"),
             "feedback": evaluation["feedback"],
             "educational_content": educational_content
             or "Contenu éducatif non disponible",
@@ -80,21 +77,20 @@ def evaluate_answer(user_answer: str, question_data: Dict) -> Optional[Dict]:
         traceback.print_exc()
         return {
             "score": 0,
-            "score_letter": "C",
             "feedback": f"Erreur lors de l'évaluation: {str(e)}",
             "educational_content": "Erreur technique lors de l'évaluation.",
         }
 
 
-def get_score_category(score: int) -> str:
+def get_score_category(score: float) -> str:
     """Get descriptive category for a score."""
-    if score >= 18:
+    if score >= 4.5:
         return "Excellent"
-    elif score >= 15:
+    elif score >= 3.75:
         return "Très bien"
-    elif score >= 12:
+    elif score >= 3:
         return "Bien"
-    elif score >= 8:
+    elif score >= 2:
         return "Moyen"
     else:
         return "Insuffisant"
@@ -112,7 +108,7 @@ def calculate_total_score(individual_scores: list) -> Dict:
         }
 
     total = sum(individual_scores)
-    max_possible = len(individual_scores) * 20
+    max_possible = len(individual_scores) * 5
     average = total / len(individual_scores)
     percentage = (total / max_possible) * 100 if max_possible > 0 else 0
 

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Quiz Médical - Question {{ question_number }}{% endblock %}
+{% block title %}Quiz Médical - Question{% endblock %}
 {% block content %}
 <div style="max-width: 800px; margin: 0 auto;">
     <div style="background: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
-        <h2>Question {{ question_number }} / {{ total_questions }}</h2>
+        <h2>Question</h2>
         {% if contest_type == 'national' %}
-            <p><strong>Concours National</strong> - Équipe: CHU {{ team }}</p>
+            <p>Équipe: {{ team }}</p>
         {% elif contest_type == 'personal' %}
             <p><strong>Concours Personnel</strong> - Sujet: {{ topic.replace('_', ' ').title() }}</p>
         {% endif %}
@@ -39,7 +39,7 @@
 
     <div style="margin-top: 30px; padding: 15px; background: #d1ecf1; border-radius: 5px;">
         <h4>💡 Conseil</h4>
-        <p>Rédigez une réponse claire et précise. Vous pouvez mentionner le traitement, le diagnostic, la conduite à tenir, etc. selon la question posée.</p>
+        <p>Rédigez la réponse la plus détaillée possible. Vous pouvez mentionner le traitement, le diagnostic, la conduite à tenir, etc. selon la question posée.</p>
     </div>
 </div>
 {% endblock %}

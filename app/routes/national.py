@@ -1,8 +1,10 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash
-from app.utils.constants import TEAM_LIST, QUESTION_COUNT
+from app.utils.constants import TEAM_LIST
 from app.utils.vignette import generate_vignette_and_question
 from app.utils.scorer import evaluate_answer, calculate_total_score
 from app.utils.scoreboard import scoreboard
+
+TOTAL_QUESTIONS = 1
 
 national_bp = Blueprint("national", __name__)
 
@@ -21,57 +23,53 @@ def select_team():
         flash("Veuillez sélectionner une équipe valide", "error")
         return redirect(url_for("national.index"))
 
+    # Clear any existing session data
+    for key in list(session.keys()):
+        if key not in ['csrf_token', '_flashes']:
+            session.pop(key, None)
+    
     # Initialize session for national contest
     session["contest_type"] = "national"
     session["team"] = team
-    session["current_question"] = 0
-    session["questions"] = []
-    session["answers"] = []
-    session["scores"] = []
+    session["quiz_completed"] = False
 
     return redirect(url_for("national.quiz"))
 
 
 @national_bp.route("/quiz")
 def quiz():
-    """Display current quiz question."""
+    """Display the single quiz question."""
     if "team" not in session or session.get("contest_type") != "national":
         flash("Veuillez d'abord sélectionner votre équipe", "error")
         return redirect(url_for("national.index"))
 
-    current_q = session.get("current_question", 0)
-    print(f"DEBUG: Loading quiz question {current_q}")
-    print(f"DEBUG: Questions in session: {len(session.get('questions', []))}")
-
-    # Check if quiz is complete
-    if current_q >= QUESTION_COUNT:
-        print(f"DEBUG: Quiz complete, redirecting to results")
+    # Check if quiz is already completed
+    if session.get("quiz_completed", False):
         return redirect(url_for("national.results"))
 
-    # Generate new question if needed
-    if len(session["questions"]) <= current_q:
-        print(f"DEBUG: Generating new question for index {current_q}")
+    # Generate question if not already in session
+    if "question" not in session:
+        print(f"DEBUG: Generating quiz question")
         question_data = generate_vignette_and_question()
         if not question_data:
             flash("Erreur lors de la génération de la question", "error")
             return redirect(url_for("national.index"))
 
         print(f"DEBUG: Generated question data keys: {question_data.keys()}")
-        # Store complete question data with expanded session size
-        session["questions"].append(question_data)
+        print(f"DEBUG: Question data size: {len(str(question_data))}")
+        session["question"] = question_data
         session.modified = True
+        print(f"DEBUG: Question stored in session, session keys: {list(session.keys())}")
 
-    question = session["questions"][current_q]
-    question_number = current_q + 1
-    print(
-        f"DEBUG: Displaying question {question_number}, question keys: {question.keys()}"
-    )
+    question = session["question"]
+    print(f"DEBUG: Displaying question, keys: {question.keys()}")
+    print(f"DEBUG: Session keys before rendering: {list(session.keys())}")
 
     return render_template(
         "quiz.html",
         question=question,
-        question_number=question_number,
-        total_questions=QUESTION_COUNT,
+        question_number=1,
+        total_questions=TOTAL_QUESTIONS,
         contest_type="national",
         team=session["team"],
     )
@@ -79,65 +77,58 @@ def quiz():
 
 @national_bp.route("/submit_answer", methods=["POST"])
 def submit_answer():
-    """Process submitted answer and show results."""
+    """Process submitted answer and redirect to results."""
+    print(f"DEBUG: submit_answer called")
+    print(f"DEBUG: Session keys: {list(session.keys())}")
+    print(f"DEBUG: Contest type: {session.get('contest_type')}")
+    print(f"DEBUG: Team in session: {'team' in session}")
+    
     if "team" not in session or session.get("contest_type") != "national":
+        print("DEBUG: Redirecting to index - no team or wrong contest type")
         flash("Session expirée", "error")
         return redirect(url_for("national.index"))
 
-    user_answer = request.form.get("answer", "").strip()
-    current_q = session.get("current_question", 0)
-
-    if current_q >= len(session["questions"]):
+    if "question" not in session:
+        print("DEBUG: Redirecting to quiz - no question in session")
         flash("Question non trouvée", "error")
         return redirect(url_for("national.quiz"))
 
-    # Evaluate answer
-    question_data = session["questions"][current_q]
-    print(f"DEBUG: Evaluating answer: {user_answer[:50]}...")  # Debug log
-    print(f"DEBUG: Question data keys: {question_data.keys()}")  # Debug log
+    user_answer = request.form.get("answer", "").strip()
+    question_data = session["question"]
+    
+    print(f"DEBUG: User answer: {user_answer[:50]}...")
+    print(f"DEBUG: Question data keys: {question_data.keys()}")
+    
     evaluation = evaluate_answer(user_answer, question_data)
-    print(f"DEBUG: Evaluation result: {evaluation}")  # Debug log
+    print(f"DEBUG: Evaluation result: {evaluation}")
 
     if not evaluation:
         print("DEBUG: No evaluation returned, using fallback")
         evaluation = {
             "score": 0,
-            "score_letter": "C",
             "feedback": "Erreur lors de l'évaluation - aucune réponse de l'IA",
             "educational_content": "Erreur technique lors de l'évaluation.",
         }
 
-    # Store answer and score with expanded session size
-    session["answers"].append(user_answer)
-    session["scores"].append(evaluation["score"])
+    # Store results and mark quiz as completed
+    session["user_answer"] = user_answer
+    session["evaluation"] = evaluation
+    session["quiz_completed"] = True
     session.modified = True
+    
+    print(f"DEBUG: Session updated, showing feedback")
+    print(f"DEBUG: Quiz completed flag: {session.get('quiz_completed')}")
 
     return render_template(
         "result.html",
         evaluation=evaluation,
         question_data=question_data,
-        question_number=current_q + 1,
-        total_questions=QUESTION_COUNT,
+        question_number=1,
+        total_questions=TOTAL_QUESTIONS,
         contest_type="national",
     )
 
 
-@national_bp.route("/next_question", methods=["POST"])
-def next_question():
-    """Move to next question."""
-    if "team" not in session or session.get("contest_type") != "national":
-        return redirect(url_for("national.index"))
-
-    current_q = session.get("current_question", 0)
-    print(f"DEBUG: Moving from question {current_q} to {current_q + 1}")
-    print(f"DEBUG: Session questions count: {len(session.get('questions', []))}")
-    print(f"DEBUG: Session answers count: {len(session.get('answers', []))}")
-    print(f"DEBUG: Session scores count: {len(session.get('scores', []))}")
-
-    session["current_question"] = current_q + 1
-    session.modified = True
-
-    return redirect(url_for("national.quiz"))
 
 
 @national_bp.route("/results")
@@ -147,12 +138,17 @@ def results():
         flash("Session expirée", "error")
         return redirect(url_for("national.index"))
 
-    if len(session.get("scores", [])) < QUESTION_COUNT:
+    if not session.get("quiz_completed", False):
         flash("Quiz non terminé", "error")
         return redirect(url_for("national.quiz"))
 
-    # Calculate final score
-    final_stats = calculate_total_score(session["scores"])
+    evaluation = session.get("evaluation")
+    if not evaluation:
+        flash("Résultats non trouvés", "error")
+        return redirect(url_for("national.quiz"))
+
+    # Calculate final score (single question)
+    final_stats = calculate_total_score([evaluation["score"]])
     team = session["team"]
 
     # Add to leaderboard
@@ -165,10 +161,10 @@ def results():
     for key in [
         "contest_type",
         "team",
-        "current_question",
-        "questions",
-        "answers",
-        "scores",
+        "question",
+        "user_answer",
+        "evaluation",
+        "quiz_completed",
     ]:
         session.pop(key, None)
 
@@ -183,5 +179,5 @@ def results():
 @national_bp.route("/leaderboard")
 def leaderboard():
     """Show current leaderboard."""
-    top_teams = scoreboard.get_top_teams()
-    return render_template("national/leaderboard.html", leaderboard=top_teams)
+    all_teams = scoreboard.get_top_teams(limit=None)
+    return render_template("national/leaderboard.html", leaderboard=all_teams)

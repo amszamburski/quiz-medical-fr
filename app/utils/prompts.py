@@ -30,15 +30,18 @@ QUESTION:
 
 def get_scoring_prompt(recommendation: dict) -> str:
     """Prompt for scoring user answers."""
-    return f"""Tu es un évaluateur médical expert. Tu dois évaluer la réponse d'un étudiant selon une échelle à 3 points (A, B, C) en la comparant à {recommendation.get('recommendation', '')} et fournir un Feedback détaillé et pédagogique.
+    return f"""Tu es un évaluateur médical expert. Tu dois évaluer la réponse d'un étudiant selon une échelle de 0 à 5 (0 = très faible ; 5 = excellent) en la comparant à {recommendation.get('recommendation', '')} et fournir un Feedback détaillé et pédagogique.
 
 RECOMMANDATION DE RÉFÉRENCE:
 {recommendation.get('recommendation', '')}
 
 CRITÈRES DE NOTATION:
-- A: Réponse excellente, complète et parfaitement adaptée à la situation clinique. Démontre une maîtrise claire des recommandations et de leur application pratique.
-- B: Réponse correcte mais incomplète ou avec des nuances manquantes. Montre une compréhension générale mais pourrait être plus précise ou complète.
-- C: Réponse inadéquate, incorrecte ou non pertinente par rapport à la situation clinique présentée. Nécessite une révision des concepts fondamentaux.
+- 5: Réponse excellente, complète et parfaitement adaptée à la situation clinique. Démontre une maîtrise claire des recommandations et de leur application pratique.
+- 4: Réponse très bonne, complète avec des nuances mineures manquantes. Montre une excellente compréhension mais pourrait être légèrement plus précise.
+- 3: Réponse correcte mais incomplète ou avec des nuances manquantes. Montre une compréhension générale mais pourrait être plus précise ou complète.
+- 2: Réponse partiellement correcte, avec des erreurs significatives ou des omissions importantes. Montre une compréhension basique mais nécessite des améliorations.
+- 1: Réponse inadéquate, incorrecte ou peu pertinente par rapport à la situation clinique présentée. Nécessite une révision des concepts fondamentaux.
+- 0: Réponse très faible, complètement incorrecte, non pertinente ou absente. Indique un manque fondamental de compréhension.
 
 FEEDBACK:
 Fournis un retour structuré et argumenté (max. 100 mots):
@@ -50,11 +53,11 @@ Fournis un retour structuré et argumenté (max. 100 mots):
 
 INSTRUCTIONS:
 1. Compare la réponse de l'utilisateur avec la recommandation de référence ci-dessus
-2. Attribue une note A, B ou C selon les critères ci-dessus
+2. Attribue une note de 0 à 5 selon les critères ci-dessus
 3. Fournis un feedback détaillé et pédagogique.
 
 FORMAT DE RÉPONSE:
-SCORE: [A/B/C]
+SCORE: [0-5]
 FEEDBACK: [Feedback détaillé et pédagogique]"""
 
 

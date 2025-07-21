@@ -2,12 +2,12 @@
 {% block title %}Concours National{% endblock %}
 {% block content %}
 <h1>Concours National</h1>
-<p>Choisissez votre équipe CHU et répondez à 5 questions pour contribuer au classement de votre ville !</p>
+<p>Choisissez votre équipe et répondez à la question !</p>
 
 <form method="POST" action="{{ url_for('national.select_team') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <div style="margin: 20px 0;">
-        <label for="team" style="display: block; margin-bottom: 10px; font-weight: bold;">Sélectionnez votre CHU :</label>
+        
         <select name="team" id="team" required style="padding: 10px; font-size: 16px; width: 300px; border: 1px solid #ccc; border-radius: 5px;">
             <option value="">-- Choisissez votre ville --</option>
             {% for team in teams %}
@@ -17,17 +17,17 @@
     </div>
 
     <button type="submit" style="padding: 12px 24px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-        Commencer le Quiz
+        Commencer le SFARDLE
     </button>
 </form>
 
 <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-    <h3>Règles du Concours National</h3>
+    <h3>Règles du SFARDLE National</h3>
     <ul>
-        <li>5 questions aléatoires sur tous les sujets médicaux</li>
-        <li>Votre score s'ajoute au classement de votre CHU</li>
-        <li>Classement mis à jour en temps réel (top 3)</li>
-        <li>Remise à zéro automatique chaque jour</li>
+        <li>1 question aléatoire sur toutes les RFE SFAR</li>
+        <li>Votre score s'ajoute au classement de votre équipe</li>
+        <li>Classement mis à jour en temps réel (top 3 National)</li>
+        <li>Remise à zéro tous les jours</li>
     </ul>
 </div>
 

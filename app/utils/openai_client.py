@@ -2,6 +2,7 @@ import os
 import openai
 from tenacity import retry, stop_after_attempt, wait_exponential
 from typing import Optional, Dict
+import re
 
 
 class OpenAIClient:
@@ -25,7 +26,7 @@ class OpenAIClient:
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
     )
     def chat_completion(
-        self, messages: list, temperature: float = 0.7, max_tokens: int = 1000
+        self, messages: list, temperature: float = 0.7, max_tokens: int = 1200
     ) -> Optional[str]:
         """Make a chat completion request with retry logic."""
         try:
@@ -60,7 +61,7 @@ class OpenAIClient:
                 },
             ]
 
-            response = self.chat_completion(messages, temperature=0.8, max_tokens=800)
+            response = self.chat_completion(messages, temperature=0.8, max_tokens=2000)
             if not response:
                 return None
 
@@ -112,8 +113,7 @@ RÉPONSE DE L'UTILISATEUR: {user_answer}
             if not response:
                 print("DEBUG: No response from OpenAI")
                 return {
-                    "score": 6,
-                    "score_letter": "C",
+                    "score": 0,
                     "feedback": "Aucune réponse de l'IA - évaluation par défaut",
                 }
 
@@ -121,29 +121,24 @@ RÉPONSE DE L'UTILISATEUR: {user_answer}
             print(f"DEBUG: Raw OpenAI response: {response}")
 
             # More robust parsing
-            score_letter = None
             score_numeric = None
             feedback = ""
 
-            # Split by SCORE: and FEEDBACK:
-            if "SCORE:" in response:
-                parts = response.split("SCORE:")
-                if len(parts) > 1:
-                    score_part = parts[1].split("FEEDBACK:")[0].strip()
-                    score_text = score_part.strip()
-                    if score_text == "A":
-                        score_letter = "A"
-                        score_numeric = 18
-                    elif score_text == "B":
-                        score_letter = "B"
-                        score_numeric = 12
-                    elif score_text == "C":
-                        score_letter = "C"
-                        score_numeric = 6
-                    else:
-                        score_letter = "C"
-                        score_numeric = 0
+            # Extract score using regex
+            score_match = re.search(r'SCORE:\s*(\d)', response)
+            if score_match:
+                try:
+                    score_numeric = int(score_match.group(1))
+                    if score_numeric not in range(6):
+                        raise ValueError("Score out of range")
+                except ValueError:
+                    print(f"DEBUG: Invalid score parsed: {score_match.group(1)}. Setting to 0.")
+                    score_numeric = 0
+            else:
+                print("DEBUG: No SCORE found in response. Setting to 0.")
+                score_numeric = 0
 
+            # Extract feedback
             if "FEEDBACK:" in response:
                 feedback_parts = response.split("FEEDBACK:")
                 if len(feedback_parts) > 1:
@@ -155,7 +150,7 @@ RÉPONSE DE L'UTILISATEUR: {user_answer}
                 feedback = response.strip()
 
             print(
-                f"DEBUG: Parsed - Score: {score_letter}, Feedback: {feedback[:100]}..."
+                f"DEBUG: Parsed - Score: {score_numeric}, Feedback: {feedback[:100]}..."
             )
 
             # Ensure we always have some feedback
@@ -163,8 +158,7 @@ RÉPONSE DE L'UTILISATEUR: {user_answer}
                 feedback = "Réponse évaluée. Veuillez consulter le contenu éducatif pour plus de détails."
 
             return {
-                "score": score_numeric if score_numeric is not None else 6,
-                "score_letter": score_letter or "C",
+                "score": score_numeric if score_numeric is not None else 0,
                 "feedback": feedback,
             }
 
@@ -175,7 +169,6 @@ RÉPONSE DE L'UTILISATEUR: {user_answer}
             traceback.print_exc()
             return {
                 "score": 0,
-                "score_letter": "C",
                 "feedback": f"Erreur lors de l'évaluation: {str(e)}",
             }
 
@@ -197,7 +190,7 @@ RÉPONSE DE L'UTILISATEUR: {user_answer}
                 },
             ]
 
-            response = self.chat_completion(messages, temperature=0.5, max_tokens=1000)
+            response = self.chat_completion(messages, temperature=0.5, max_tokens=1200)
             return response
 
         except Exception as e:
@@ -238,25 +231,22 @@ class MockOpenAIClient:
 
     def evaluate_answer(self, user_answer, correct_recommendation, vignette, question):
         """Mock answer evaluation."""
-        # Mock A/B/C scoring based on answer length and content
+        # Mock 0-5 scoring based on answer length and content
         if len(user_answer) > 30 and any(
             word in user_answer.lower()
             for word in ["traitement", "prise en charge", "urgence", "stabilisation"]
         ):
-            score = 18  # Grade A
-            grade = "A"
+            score = 5  # Excellent
             feedback = f"Excellente réponse. Votre approche est cohérente avec la recommandation {correct_recommendation.get('grade', 'N/A')}. Vous avez bien identifié les éléments clés de la prise en charge."
         elif len(user_answer) > 15:
-            score = 12  # Grade B
-            grade = "B"
+            score = 3  # Moyen
             feedback = f"Réponse correcte mais incomplète. Vous avez saisi l'essentiel de la recommandation {correct_recommendation.get('grade', 'N/A')}, mais certains détails manquent."
         else:
-            score = 6  # Grade C
-            grade = "C"
+            score = 1  # Mauvais
             feedback = f"Réponse insuffisante. La recommandation {correct_recommendation.get('grade', 'N/A')} requiert une approche plus complète. Consultez le contenu éducatif."
 
-        return {"score": score, "score_letter": grade, "feedback": feedback}
+        return {"score": score, "feedback": feedback}
 
     def generate_educational_content(self, recommendation, user_score):
         """Mock educational content."""
-        return f"Contenu éducatif de démonstration pour {recommendation['topic']}. Score: {user_score}/20. Références: {recommendation.get('references', 'Non disponible')}"
+        return f"Contenu éducatif de démonstration pour {recommendation['topic']}. Score: {user_score}/5. Références: {recommendation.get('references', 'Non disponible')}"
