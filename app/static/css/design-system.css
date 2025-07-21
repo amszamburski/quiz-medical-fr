@@ -448,6 +448,12 @@ p {
   }
 }
 
+.select-fixed,
+.btn-fixed {
+  width: 100%;
+  max-width: 300px;
+}
+
 @media (min-width: 768px) {
   .content-wrapper {
     padding: var(--space-3xl) 0;

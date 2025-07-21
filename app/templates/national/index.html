@@ -4,30 +4,36 @@
 {% block content %}
 <div style="max-width: 600px; margin: 0 auto;">
     <div class="card">
-        <div class="card-header">
+        <div class="card-header text-center">
             <h1 class="mb-md">Choisissez votre équipe</h1>
             
         </div>
         
-        <div class="card-content">
+        <div class="card-content text-center">
             <form method="POST" action="{{ url_for('national.select_team') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 
                 <div class="form-group">
-                   
-                    <select name="team" id="team" required class="form-control" aria-describedby="team-help">
-                        <option value="">-- Sélectionnez votre équipe --</option>
-                        {% for team in teams %}
-                        <option value="{{ team }}">{{ team }}</option>
-                        {% endfor %}
-                    </select>
-                    <div id="team-help" style="font-size: var(--font-size-sm); color: var(--text-muted); margin-top: var(--space-xs);">
-                        Votre score contribuera au classement de l'équipe sélectionnée
-                    </div>
+                  <select name="team" id="team" required
+                          class="form-control select-fixed"
+                          aria-describedby="team-help"
+                          style="margin: 0 auto; display: block;">
+                    <option value="">-- Sélectionnez votre équipe --</option>
+                    {% for team in teams %}
+                      <option value="{{ team }}">{{ team }}</option>
+                    {% endfor %}
+                  </select>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">
-                    Commencer le SFARDLE
+                <small id="team-help" class="form-text text-muted mt-1">
+                  Votre score contribuera au classement de l'équipe sélectionnée
+                </small>
+
+                <div style="margin: var(--space-xl) 0;"></div>
+
+                <button type="submit"
+                        class="btn btn-primary btn-large btn-fixed">
+                  Commencer le&nbsp;SFARDLE
                 </button>
             </form>
         </div>
