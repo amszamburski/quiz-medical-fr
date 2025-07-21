@@ -1,51 +1,74 @@
 {% extends "base.html" %}
-{% block title %}Résultats SFARDLE National{% endblock %}
-{% block content %}
-<div style="max-width: 800px; margin: 0 auto;">
-    <h1>Résultats du SFARDLE National</h1>
+{% block title %}SFARDLE - Résultats finaux{% endblock %}
 
-    <div style="background: #d4edda; padding: 20px; border-radius: 5px; margin-bottom: 30px;">
-        <h2>Votre Performance</h2>
-        <p><strong>Équipe:</strong> {{ team }}</p>
-        <p><strong>Score:</strong> {{ final_stats.total_score }}/{{ final_stats.max_possible }}</p>
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header text-center">
+            <h1 class="mb-md">Résultats SFARDLE</h1>
+        </div>
+        
+        <div class="card-content">
+            <div class="score-display">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg);">
+                    <div class="text-center" style="flex: 1;">
+                        <div style="font-size: var(--font-size-2xl); font-weight: 700; color: var(--accent-primary);">
+                            {{ team }}
+                        </div>
+            
+                    </div>
+                    <div class="text-center" style="flex: 1;">
+                        <div class="score-value">{{ final_stats.total_score }}/{{ final_stats.max_possible }}</div>
+                        <div class="score-label">Score obtenu</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     {% if leaderboard %}
-    <div style="background: #fff; border: 1px solid #dee2e6; border-radius: 5px; margin-bottom: 30px;">
-        <div style="background: #007bff; color: white; padding: 15px; border-radius: 5px 5px 0 0;">
-            <h3>🥇 Top 3 National des équipes</h3>
+    <div class="leaderboard">
+        <div class="leaderboard-header">
+            <h2 class="mb-0" style="color: white;">Classement des équipes</h2>
         </div>
-        <div style="padding: 20px;">
-            {% for team_data in leaderboard %}
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; {% if loop.index <= 3 %}background: {% if loop.index == 1 %}#ffd700{% elif loop.index == 2 %}#c0c0c0{% else %}#cd7f32{% endif %}; color: {% if loop.index <= 3 %}white{% else %}black{% endif %};{% endif %} margin-bottom: 10px; border-radius: 5px;">
-                <div style="display: flex; align-items: center;">
-                    <span style="font-weight: bold; margin-right: 15px;">
-                        {% if loop.index == 1 %}🥇
-                        {% elif loop.index == 2 %}🥈
-                        {% elif loop.index == 3 %}🥉
-                        {% else %}{{ loop.index }}.
-                        {% endif %}
-                    </span>
-                    <span style="font-size: 18px;">{{ team_data.team_name }}</span>
+        
+        {% for team_data in leaderboard %}
+        <div class="leaderboard-item {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
+            <div style="display: flex; align-items: center;">
+                <div class="leaderboard-rank">
+                    {% if loop.index == 1 %}🥇
+                    {% elif loop.index == 2 %}🥈
+                    {% elif loop.index == 3 %}🥉
+                    {% else %}{{ loop.index }}.
+                    {% endif %}
                 </div>
-                <div style="text-align: right;">
-                    <div style="font-weight: bold;">{{ team_data.average_score }}/5</div>
-                    <div style="font-size: 12px;">{{ team_data.player_count }} participant{% if team_data.player_count > 1 %}s{% endif %}</div>
+                <div class="leaderboard-team">{{ team_data.team_name }}</div>
+            </div>
+            <div class="leaderboard-score">
+                <div style="font-weight: 700; font-size: var(--font-size-lg);">
+                    {{ team_data.average_score }}/5
+                </div>
+                <div style="font-size: var(--font-size-sm); opacity: 0.8;">
+                    {{ team_data.player_count }} participant{% if team_data.player_count > 1 %}s{% endif %}
                 </div>
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
     </div>
     {% endif %}
 
-    <div style="text-align: center; margin-top: 30px;">
-        
-        <a href="{{ url_for('national.leaderboard') }}" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">
+    <div class="text-center mt-xl">
+        <a href="{{ url_for('national.leaderboard') }}" class="btn btn-secondary">
             Classement complet
         </a>
-        <a href="{{ url_for('main.index') }}" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px;">
-            Accueil
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+            Retour à l'accueil
         </a>
+    </div>
+    
+    <div class="alert alert-info mt-lg">
+        <h3 class="mb-md">Prochain SFARDLE demain!</h3>
+        
     </div>
 </div>
 {% endblock %}

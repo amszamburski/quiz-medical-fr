@@ -1,45 +1,65 @@
 {% extends "base.html" %}
-{% block title %}Quiz Médical - Question{% endblock %}
+{% block title %}SFARDLE - Question{% endblock %}
+
 {% block content %}
 <div style="max-width: 800px; margin: 0 auto;">
-    <div style="background: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
-        <h2>Question</h2>
-        {% if contest_type == 'national' %}
-            <p>Équipe: {{ team }}</p>
-        {% elif contest_type == 'personal' %}
-            <p><strong>Concours Personnel</strong> - Sujet: {{ topic.replace('_', ' ').title() }}</p>
-        {% endif %}
-    </div>
-
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-        <h3>Vignette Clinique</h3>
-        <p style="line-height: 1.6;">{{ question.vignette }}</p>
-    </div>
-
-    <div style="background: #fff; padding: 20px; border: 1px solid #dee2e6; border-radius: 5px; margin-bottom: 20px;">
-        <h3>Question</h3>
-        <p style="line-height: 1.6; white-space: pre-line;">{{ question.question }}</p>
-    </div>
-
-    <form method="POST" action="{% if contest_type == 'national' %}{{ url_for('national.submit_answer') }}{% else %}{{ url_for('personal.submit_answer') }}{% endif %}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <div style="margin-bottom: 20px;">
-            <label for="answer" style="display: block; margin-bottom: 10px; font-weight: bold;">
-                Votre réponse (texte libre) :
-            </label>
-            <textarea name="answer" id="answer" required
-                      style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: Arial, sans-serif; font-size: 14px;"
-                      placeholder="Rédigez votre réponse ici..."></textarea>
+    <div class="card">
+        <div class="card-header">
+            <h1 class="mb-sm">Question SFARDLE</h1>
+            {% if contest_type == 'national' %}
+                <p class="mb-0" style="color: var(--text-secondary);">
+                    <strong>Équipe:</strong> {{ team }}
+                </p>
+            {% elif contest_type == 'personal' %}
+                <p class="mb-0" style="color: var(--text-secondary);">
+                    <strong>Sujet:</strong> {{ topic.replace('_', ' ').title() }}
+                </p>
+            {% endif %}
         </div>
+    </div>
 
-        <button type="submit" style="padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-            Valider ma réponse
-        </button>
-    </form>
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">Vignette Clinique</h2>
+        </div>
+        <div class="card-content">
+            <p style="line-height: var(--line-height-relaxed);">{{ question.vignette }}</p>
+        </div>
+    </div>
 
-    <div style="margin-top: 30px; padding: 15px; background: #d1ecf1; border-radius: 5px;">
-        <h4>💡 Conseil</h4>
-        <p>Rédigez la réponse la plus détaillée possible. Vous pouvez mentionner le traitement, le diagnostic, la conduite à tenir, etc. selon la question posée.</p>
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">Question</h2>
+        </div>
+        <div class="card-content">
+            <p style="line-height: var(--line-height-relaxed); white-space: pre-line;">{{ question.question }}</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <form method="POST" action="{% if contest_type == 'national' %}{{ url_for('national.submit_answer') }}{% else %}{{ url_for('personal.submit_answer') }}{% endif %}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="form-group">
+                    <label for="answer" class="form-label">
+                        Votre réponse
+                    </label>
+                    <textarea name="answer" id="answer" required
+                              class="form-control"
+                              style="min-height: 120px; resize: vertical;"
+                              placeholder="Rédigez votre réponse la plus détaillée possible. Mentionnez le diagnostic, la prise en charge, les traitements recommandés selon les guidelines SFAR..."
+                              aria-describedby="answer-help"></textarea>
+                    <div id="answer-help" style="font-size: var(--font-size-sm); color: var(--text-muted); margin-top: var(--space-xs);">
+                        Plus votre réponse est précise et complète, meilleur sera votre score
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">
+                    Valider ma réponse
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

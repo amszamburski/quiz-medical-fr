@@ -1,67 +1,81 @@
 {% extends "base.html" %}
-{% block title %}Classement National{% endblock %}
-{% block content %}
-<div style="max-width: 800px; margin: 0 auto;">
-    <h1>🏆 Classement National du Jour</h1>
-    <p style="text-align: center; color: #666; margin-bottom: 30px;">
-        Classement mis à jour en temps réel • Remise à zéro quotidienne
-    </p>
+{% block title %}SFARDLE - Classement national{% endblock %}
 
-    {% if leaderboard %}
-    <div style="background: #fff; border: 1px solid #dee2e6; border-radius: 5px;">
-        <div style="background: #007bff; color: white; padding: 15px; border-radius: 5px 5px 0 0;">
-            <h3>Équipes CHU</h3>
-        </div>
-        <div style="padding: 20px;">
-            {% for team_data in leaderboard %}
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; {% if loop.index <= 3 %}background: {% if loop.index == 1 %}#ffd700{% elif loop.index == 2 %}#c0c0c0{% else %}#cd7f32{% endif %}; color: white;{% else %}background: #f8f9fa;{% endif %} margin-bottom: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
-                <div style="display: flex; align-items: center;">
-                    <span style="font-weight: bold; margin-right: 15px; font-size: 20px;">
-                        {% if loop.index == 1 %}🥇
-                        {% elif loop.index == 2 %}🥈
-                        {% elif loop.index == 3 %}🥉
-                        {% else %}{{ loop.index }}.
-                        {% endif %}
-                    </span>
-                    <div>
-                        <div style="font-size: 18px; font-weight: bold;">CHU {{ team_data.team_name }}</div>
-                        <div style="font-size: 14px; opacity: 0.8;">{{ team_data.player_count }} participant{% if team_data.player_count > 1 %}s{% endif %}</div>
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 24px; font-weight: bold;">{{ team_data.average_score }}<span style="font-size: 16px;">/20</span></div>
-                    <div style="font-size: 12px; opacity: 0.8;">{{ team_data.total_score }} pts total</div>
-                </div>
-            </div>
-            {% endfor %}
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header text-center">
+            <h1 class="mb-md">Classement national SFARDLE</h1>
+            <p class="mb-0" style="color: var(--text-secondary);">
+                Classement mis à jour en temps réel • Remise à zéro quotidienne
+            </p>
         </div>
     </div>
+
+    {% if leaderboard %}
+    <div class="leaderboard">
+        <div class="leaderboard-header">
+            <h2 class="mb-0">Classement des équipes</h2>
+        </div>
+        
+        {% for team_data in leaderboard %}
+        <div class="leaderboard-item {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
+            <div style="display: flex; align-items: center;">
+                <div class="leaderboard-rank">
+                    {% if loop.index == 1 %}🥇
+                    {% elif loop.index == 2 %}🥈
+                    {% elif loop.index == 3 %}🥉
+                    {% else %}{{ loop.index }}.
+                    {% endif %}
+                </div>
+                <div>
+                    <div class="leaderboard-team">{{ team_data.team_name }}</div>
+                    <div style="font-size: var(--font-size-sm); opacity: 0.8; margin-top: var(--space-xs);">
+                        {{ team_data.player_count }} participant{% if team_data.player_count > 1 %}s{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="leaderboard-score">
+                <div style="font-weight: 700; font-size: var(--font-size-xl);">
+                    {{ team_data.average_score }}/5
+                </div>
+                <div style="font-size: var(--font-size-sm); opacity: 0.8;">
+                    {{ team_data.total_score }} pts total
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
     {% else %}
-    <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 5px;">
-        <h3>Aucun score aujourd'hui</h3>
-        <p>Soyez le premier à participer au concours national !</p>
-        <a href="{{ url_for('national.index') }}" style="display: inline-block; margin-top: 15px; padding: 12px 24px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;">
-            Participer maintenant
-        </a>
+    <div class="card">
+        <div class="card-content text-center">
+            <h2 class="mb-md">Aucun score aujourd'hui</h2>
+            <p class="mb-xl" style="color: var(--text-secondary);">
+                Soyez le premier à participer au SFARDLE national !
+            </p>
+            <a href="{{ url_for('national.index') }}" class="btn btn-primary btn-large">
+                Participer maintenant
+            </a>
+        </div>
     </div>
     {% endif %}
 
-    <div style="background: #e9ecef; padding: 15px; border-radius: 5px; margin-top: 30px;">
-        <h4>ℹ️ Comment fonctionne le classement ?</h4>
-        <ul style="margin: 10px 0;">
-            <li>Le score affiché est la <strong>moyenne</strong> des participants de chaque CHU</li>
-            <li>Plus votre CHU a de participants avec de bons scores, mieux il est classé</li>
-            <li>Le classement se remet à zéro automatiquement chaque jour</li>
-            <li>Seules les 3 meilleures équipes sont mises en avant</li>
+    <div class="alert alert-info">
+        <h3 class="mb-md">Comment fonctionne le classement ?</h3>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <li class="mb-sm">• Le score affiché est la <strong>moyenne</strong> des participants de chaque équipe</li>
+            <li class="mb-sm">• Plus votre équipe a de participants avec de bons scores, mieux elle est classée</li>
+            <li class="mb-sm">• Le classement se remet à zéro automatiquement chaque jour</li>
+            <li>• Toutes les équipes participantes sont affichées dans ce classement</li>
         </ul>
     </div>
 
-    <div style="text-align: center; margin-top: 30px;">
-        <a href="{{ url_for('national.index') }}" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;">
-            Participer
+    <div class="text-center mt-xl">
+        <a href="{{ url_for('national.index') }}" class="btn btn-primary">
+            Participer au SFARDLE
         </a>
-        <a href="{{ url_for('main.index') }}" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px;">
-            Accueil
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">
+            Retour à l'accueil
         </a>
     </div>
 </div>

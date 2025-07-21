@@ -1,38 +1,47 @@
 {% extends "base.html" %}
-{% block title %}Concours National{% endblock %}
-{% block content %}
-<h1>Concours National</h1>
-<p>Choisissez votre équipe et répondez à la question !</p>
+{% block title %}SFARDLE - Sélection d'équipe{% endblock %}
 
-<form method="POST" action="{{ url_for('national.select_team') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    <div style="margin: 20px 0;">
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="mb-md">Choisissez votre équipe</h1>
+            
+        </div>
         
-        <select name="team" id="team" required style="padding: 10px; font-size: 16px; width: 300px; border: 1px solid #ccc; border-radius: 5px;">
-            <option value="">-- Choisissez votre ville --</option>
-            {% for team in teams %}
-            <option value="{{ team }}">CHU {{ team }}</option>
-            {% endfor %}
-        </select>
+        <div class="card-content">
+            <form method="POST" action="{{ url_for('national.select_team') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="form-group">
+                   
+                    <select name="team" id="team" required class="form-control" aria-describedby="team-help">
+                        <option value="">-- Sélectionnez votre équipe --</option>
+                        {% for team in teams %}
+                        <option value="{{ team }}">{{ team }}</option>
+                        {% endfor %}
+                    </select>
+                    <div id="team-help" style="font-size: var(--font-size-sm); color: var(--text-muted); margin-top: var(--space-xs);">
+                        Votre score contribuera au classement de l'équipe sélectionnée
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">
+                    Commencer le SFARDLE
+                </button>
+            </form>
+        </div>
     </div>
 
-    <button type="submit" style="padding: 12px 24px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-        Commencer le SFARDLE
-    </button>
-</form>
+  
 
-<div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-    <h3>Règles du SFARDLE National</h3>
-    <ul>
-        <li>1 question aléatoire sur toutes les RFE SFAR</li>
-        <li>Votre score s'ajoute au classement de votre équipe</li>
-        <li>Classement mis à jour en temps réel (top 3 National)</li>
-        <li>Remise à zéro tous les jours</li>
-    </ul>
+    <div class="text-center mt-lg">
+        <a href="{{ url_for('national.leaderboard') }}" class="btn btn-secondary">
+            Voir le classement
+        </a>
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">
+            Retour à l'accueil
+        </a>
+    </div>
 </div>
-
-<p style="margin-top: 20px;">
-    <a href="{{ url_for('national.leaderboard') }}" style="color: #007bff;">Voir le classement actuel</a> |
-    <a href="{{ url_for('main.index') }}" style="color: #007bff;">Retour à l'accueil</a>
-</p>
 {% endblock %}

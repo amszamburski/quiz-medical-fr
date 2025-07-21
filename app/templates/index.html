@@ -1,6 +1,41 @@
 {% extends "base.html" %}
-{% block title %}Quiz Médical - Accueil{% endblock %}
+{% block title %}SFARDLE - Accueil{% endblock %}
+
 {% block content %}
-<h1>SFARDLE: Testez vos connaissances des recommandations SFAR</h1>
-<a href="/national/">Jouer</a>
+<div class="text-center" style="max-width: 600px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-content">
+            <h1 class="mb-lg">SFARDLE</h1>
+            
+            <div class="mb-xl">
+                <a href="{{ url_for('national.index') }}" 
+                   class="btn btn-primary btn-large"
+                   role="button"
+                   aria-describedby="game-description">
+                    Commencer le quiz
+                </a>
+            </div>
+            
+            <div id="game-description" class="alert alert-info">
+                <h3 class="mb-md">Comment ça marche ?</h3>
+                
+                <ul class="list-unstyled text-center mb-0">
+                    <li class="mb-sm">Testez vos connaissances des recommandations de la SFAR</li>
+                    <li class="mb-sm">Une question par jour</li>
+                    <li class="mb-sm">Choisissez votre équipe médicale</li>
+                    <li class="mb-sm">Répondez de manière détaillée</li>
+                    <li class="mb-sm">Consultez votre score et le classement national des équipes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: var(--space-xl);">
+        <a href="{{ url_for('national.leaderboard') }}" 
+           class="btn btn-secondary"
+           role="button">
+            Voir le classement
+        </a>
+    </div>
+</div>
 {% endblock %}

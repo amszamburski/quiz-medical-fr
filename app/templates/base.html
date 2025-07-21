@@ -3,15 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Quiz Médical{% endblock %}</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        h1 { color: #333; }
-        a { display: inline-block; margin: 10px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
-        a:hover { background: #0056b3; }
-    </style>
+    <meta name="description" content="SFARDLE - Quiz médical basé sur les recommandations SFAR">
+    <title>{% block title %}SFARDLE{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    {% block head %}{% endblock %}
 </head>
 <body>
-    {% block content %}{% endblock %}
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    
+    <div class="main-content">
+
+        <main id="main-content" role="main" class="content-wrapper">
+            <div class="container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div role="alert" aria-live="polite">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+        <footer role="contentinfo" class="container">
+            <div style="text-align: center; padding: var(--space-xl) 0; color: var(--text-muted); font-size: var(--font-size-sm);">
+                <p class="mb-0">SFARDLE - Quiz médical basé sur les recommandations SFAR</p>
+            </div>
+        </footer>
+    </div>
+
+    {% block scripts %}{% endblock %}
 </body>
 </html>

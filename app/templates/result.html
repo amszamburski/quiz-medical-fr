@@ -1,42 +1,60 @@
 {% extends "base.html" %}
-{% block title %}Résultat - Question{% endblock %}
+{% block title %}SFARDLE - Résultat{% endblock %}
+
 {% block content %}
 <div style="max-width: 800px; margin: 0 auto;">
-    <div style="background: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
-        <h2>Résultat</h2>
+    <div class="score-display">
+        <div class="score-value">{{ evaluation.score }}/5</div>
+        <div class="score-label">
+            {% if evaluation.score == 5 %}Excellent{% elif evaluation.score == 4 %}Très bien{% elif evaluation.score == 3 %}Bien{% elif evaluation.score == 2 %}Moyen{% else %}Insuffisant{% endif %}
+        </div>
     </div>
 
-    <div style="background: {% if evaluation.score >= 4 %}#d4edda{% elif evaluation.score >= 3 %}#fff3cd{% else %}#f8d7da{% endif %}; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-        <h3>Score: {{ evaluation.score }}/5 {% if evaluation.score == 5 %} (Excellent){% elif evaluation.score == 4 %} (Très bien){% elif evaluation.score == 3 %} (Bien){% elif evaluation.score == 2 %} (Moyen){% else %} (Insuffisant){% endif %}</h3>
-        <h4>Feedback</h4>
-        <p>{{ evaluation.feedback }}</p>
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">Évaluation de votre réponse</h2>
+        </div>
+        <div class="card-content">
+            <div class="alert {% if evaluation.score >= 4 %}alert-success{% elif evaluation.score >= 3 %}alert-warning{% else %}alert-danger{% endif %}">
+                <h3 class="mb-md">Feedback personnalisé</h3>
+                <p class="mb-0" style="line-height: var(--line-height-relaxed);">{{ evaluation.feedback }}</p>
+            </div>
+        </div>
     </div>
 
     {% if evaluation.educational_content %}
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-        <h3>Contenu Éducatif</h3>
-        <p style="line-height: 1.6;">{{ evaluation.educational_content }}</p>
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">Contenu éducatif</h2>
+        </div>
+        <div class="card-content">
+            <p style="line-height: var(--line-height-relaxed);">{{ evaluation.educational_content }}</p>
 
-        {% if evaluation.recommendation %}
-        <div style="margin-top: 15px; padding: 10px; background: #e9ecef; border-radius: 3px;">
-            <h4>Recommandation</h4>
-            <p style="font-size: 14px; line-height: 1.5;">{{ evaluation.recommendation.recommendation }}</p>
-            {% if evaluation.recommendation.references %}
-            <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                <strong>Références:</strong> {{ evaluation.recommendation.references }}
-            </p>
+            {% if evaluation.recommendation %}
+            <div style="margin-top: var(--space-lg); padding: var(--space-lg); background: var(--accent-primary-light); border-left: 4px solid var(--accent-primary); border-radius: var(--radius-md);">
+                <h3 class="mb-md" style="color: var(--accent-primary);">Recommandation SFAR</h3>
+                <p style="line-height: var(--line-height-relaxed); margin-bottom: var(--space-md);">
+                    {{ evaluation.recommendation.recommendation }}
+                </p>
+                {% if evaluation.recommendation.references %}
+                <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+                    <strong>Références:</strong> {{ evaluation.recommendation.references }}
+                </div>
+                {% endif %}
+            </div>
             {% endif %}
         </div>
-        {% endif %}
     </div>
     {% endif %}
 
-    <div style="text-align: center; margin-top: 30px;">
-        <h3>Quiz terminé !</h3>
-        <a href="{% if contest_type == 'national' %}{{ url_for('national.results') }}{% else %}{{ url_for('personal.results') }}{% endif %}"
-           style="display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
-            Voir les résultats finaux
-        </a>
+    <div class="card">
+        <div class="card-content text-center">
+            <h2 class="mb-lg">Quiz terminé !</h2>
+            <a href="{% if contest_type == 'national' %}{{ url_for('national.results') }}{% else %}{{ url_for('personal.results') }}{% endif %}"
+               class="btn btn-primary btn-large">
+                Voir les résultats finaux
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}

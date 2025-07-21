@@ -89,9 +89,14 @@ def submit_answer():
         return redirect(url_for("national.index"))
 
     if "question" not in session:
-        print("DEBUG: Redirecting to quiz - no question in session")
-        flash("Question non trouvée", "error")
-        return redirect(url_for("national.quiz"))
+        print("DEBUG: No question in session, regenerating...")
+        # Regenerate question instead of creating an error loop
+        question_data = generate_vignette_and_question()
+        if not question_data:
+            flash("Erreur lors de la génération de la question", "error")
+            return redirect(url_for("national.index"))
+        session["question"] = question_data
+        session.modified = True
 
     user_answer = request.form.get("answer", "").strip()
     question_data = session["question"]
@@ -181,3 +186,11 @@ def leaderboard():
     """Show current leaderboard."""
     all_teams = scoreboard.get_top_teams(limit=None)
     return render_template("national/leaderboard.html", leaderboard=all_teams)
+
+
+@national_bp.route("/clear_session")
+def clear_session():
+    """Clear session for debugging - remove in production."""
+    session.clear()
+    flash("Session cleared", "info")
+    return redirect(url_for("main.index"))
