@@ -1,1 +1,6 @@
-// Added by external process
+{
+  "name": "quiz-medical-fr",
+  "version": "1.0.0",
+  "description": "French medical quiz application",
+  "private": true
+}
