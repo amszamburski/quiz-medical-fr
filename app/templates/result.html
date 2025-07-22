@@ -37,7 +37,14 @@
                 </p>
                 {% if evaluation.recommendation.references %}
                 <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
-                    <strong>Références:</strong> {{ evaluation.recommendation.references }}
+                    <strong>Références:</strong> 
+                    {% if evaluation.recommendation.link and evaluation.recommendation.link.strip() %}
+                        <a href="{{ evaluation.recommendation.link }}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-primary); text-decoration: underline;">
+                            {{ evaluation.recommendation.references }}
+                        </a>
+                    {% else %}
+                        {{ evaluation.recommendation.references }}
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>

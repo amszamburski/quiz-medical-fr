@@ -51,6 +51,7 @@ class RecommendationsDB:
             "grade": rec["Grade"],
             "evidence": rec["Evidence"],
             "references": rec["References"],
+            "link": rec.get("Link", ""),
         }
 
     def list_topics(self) -> List[str]:
@@ -88,6 +89,7 @@ class RecommendationsDB:
                     "grade": rec["Grade"],
                     "evidence": rec["Evidence"],
                     "references": rec["References"],
+                    "link": rec.get("Link", ""),
                 }
             )
 
