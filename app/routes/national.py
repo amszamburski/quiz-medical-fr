@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash
+from datetime import datetime, timedelta
 from app.utils.constants import TEAM_LIST
 from app.utils.vignette import generate_vignette_and_question
 from app.utils.scorer import evaluate_answer, calculate_total_score
@@ -29,6 +30,7 @@ def select_team():
             session.pop(key, None)
     
     # Initialize session for national contest
+    session.permanent = True  # Make session persistent
     session["contest_type"] = "national"
     session["team"] = team
     session["quiz_completed"] = False
@@ -112,7 +114,6 @@ def submit_answer():
         evaluation = {
             "score": 0,
             "feedback": "Erreur lors de l'évaluation - aucune réponse de l'IA",
-            "educational_content": "Erreur technique lors de l'évaluation.",
         }
 
     # Store results and mark quiz as completed

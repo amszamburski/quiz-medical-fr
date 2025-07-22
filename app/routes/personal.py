@@ -103,7 +103,6 @@ def submit_answer():
             "score": 0,
             "score_letter": "C",
             "feedback": "Erreur lors de l'évaluation - aucune réponse de l'IA",
-            "educational_content": "Erreur technique lors de l'évaluation.",
         }
 
     # Store answer and score with expanded session size

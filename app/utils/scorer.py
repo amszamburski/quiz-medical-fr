@@ -24,7 +24,6 @@ def evaluate_answer(user_answer: str, question_data: Dict) -> Optional[Dict]:
         return {
             "score": 0,
             "feedback": "Aucune réponse fournie.",
-            "educational_content": "Veuillez fournir une réponse pour recevoir un feedback.",
         }
 
     try:
@@ -47,24 +46,11 @@ def evaluate_answer(user_answer: str, question_data: Dict) -> Optional[Dict]:
             return {
                 "score": 0,
                 "feedback": "Erreur lors de l'évaluation",
-                "educational_content": "Erreur technique lors de l'évaluation.",
             }
-
-        # Generate educational content
-        print("DEBUG: Generating educational content...")
-        educational_content = client.generate_educational_content(
-            recommendation=question_data["recommendation"],
-            user_score=evaluation["score"],
-        )
-        print(
-            f"DEBUG: Educational content generated: {educational_content[:100] if educational_content else 'None'}..."
-        )
 
         result = {
             "score": evaluation["score"],
             "feedback": evaluation["feedback"],
-            "educational_content": educational_content
-            or "Contenu éducatif non disponible",
             "recommendation": question_data["recommendation"],
         }
         print(f"DEBUG: Final result: {result}")
@@ -78,7 +64,6 @@ def evaluate_answer(user_answer: str, question_data: Dict) -> Optional[Dict]:
         return {
             "score": 0,
             "feedback": f"Erreur lors de l'évaluation: {str(e)}",
-            "educational_content": "Erreur technique lors de l'évaluation.",
         }
 
 

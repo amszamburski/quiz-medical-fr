@@ -172,30 +172,6 @@ RÉPONSE DE L'UTILISATEUR: {user_answer}
                 "feedback": f"Erreur lors de l'évaluation: {str(e)}",
             }
 
-    def generate_educational_content(
-        self, recommendation: Dict, user_score: int
-    ) -> Optional[str]:
-        """Generate educational paragraph with evidence and references."""
-        try:
-            from .prompts import get_educational_prompt
-
-            messages = [
-                {
-                    "role": "system",
-                    "content": get_educational_prompt(recommendation, user_score),
-                },
-                {
-                    "role": "user",
-                    "content": "Génère maintenant le contenu éducatif basé sur ces informations.",
-                },
-            ]
-
-            response = self.chat_completion(messages, temperature=0.5, max_tokens=1200)
-            return response
-
-        except Exception as e:
-            print(f"Error generating educational content: {e}")
-            return "Contenu éducatif non disponible"
 
 
 # Global client instance (lazy initialization)
@@ -247,6 +223,3 @@ class MockOpenAIClient:
 
         return {"score": score, "feedback": feedback}
 
-    def generate_educational_content(self, recommendation, user_score):
-        """Mock educational content."""
-        return f"Contenu éducatif de démonstration pour {recommendation['topic']}. Score: {user_score}/5. Références: {recommendation.get('references', 'Non disponible')}"

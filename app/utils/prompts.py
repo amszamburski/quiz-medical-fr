@@ -49,7 +49,8 @@ Fournis un retour structuré et argumenté (max. 100 mots):
 * Contextualise la réponse de l'utilisateur en fonction de {recommendation.get('recommendation', '')}
 * Mentionne **explicitement** le niveau d'accord **GRADE** de {recommendation.get('grade', '')}
 * Explique {recommendation.get('evidence', '')} pour cette question/recommandation, en veillant à l'appliquer et à le relier **spécifiquement au contexte du cas clinique** que tu as présenté. Justifie pourquoi la recommandation s'applique (ou non) dans la situation décrite.
-* Adopte un ton professionnel, confraternel et pédagogique. L'objectif est l'apprentissage et la consolidation des connaissances basées sur la recommendation.
+* Adopte un ton professionnel, confraternel et pédagogique. Utilise le vouvoiement (exemple: "Votre réponse est..."; "Vous avez...")
+* L'objectif est l'apprentissage et la consolidation des connaissances basées sur la recommendation.
 
 INSTRUCTIONS:
 1. Compare la réponse de l'utilisateur avec la recommandation de référence ci-dessus
@@ -61,30 +62,3 @@ SCORE: [0-5]
 FEEDBACK: [Feedback détaillé et pédagogique]"""
 
 
-def get_educational_prompt(recommendation: dict, user_score: int) -> str:
-    """Prompt for generating educational content."""
-    return f"""Tu es un professeur de médecine. Tu dois créer un paragraphe éducatif basé sur une recommandation médicale et le score de l'étudiant.
-
-RECOMMANDATION:
-{recommendation.get('recommendation', '')}
-
-PREUVES SCIENTIFIQUES:
-{recommendation.get('evidence', '')}
-
-RÉFÉRENCES:
-{recommendation.get('references', '')}
-
-SCORE DE L'ÉTUDIANT: {user_score}
-
-INSTRUCTIONS:
-1. Explique clairement la recommandation médicale
-2. Résume les preuves scientifiques qui la soutiennent
-3. Adapte le niveau d'explication au score de l'étudiant:
-   - Score élevé (A): Approfondissements et nuances
-   - Score moyen (B): Explication claire des concepts de base
-   - Score faible (C): Rappel des notions fondamentales
-4. Intègre les références scientifiques de manière naturelle
-5. Reste concis (100-150 mots)
-6. Écris en français médical accessible
-
-Fournis directement le paragraphe éducatif sans format spécial."""
