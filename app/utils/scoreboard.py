@@ -175,6 +175,7 @@ class Scoreboard:
 
                     # Sort by average score descending
                     leaderboard.sort(key=lambda x: x["average_score"], reverse=True)
+                    
                     return leaderboard[:limit] if limit else leaderboard
             except Exception as e:
                 print(f"Redis get_top_teams failed: {e}")
@@ -187,11 +188,12 @@ class Scoreboard:
                 if limit:
                     cursor = conn.execute(
                         """
-                        SELECT team_name, SUM(score) as total_score, COUNT(*) as player_count
+                        SELECT team_name, SUM(score) as total_score, COUNT(*) as player_count,
+                               ROUND(CAST(SUM(score) AS FLOAT) / CAST(COUNT(*) AS FLOAT), 1) as average_score
                         FROM team_scores
                         WHERE DATE(timestamp) = DATE(?)
                         GROUP BY team_name
-                        ORDER BY CAST(total_score AS FLOAT) / CAST(player_count AS FLOAT) DESC
+                        ORDER BY average_score DESC
                         LIMIT ?
                     """,
                         (today, limit),
@@ -199,26 +201,24 @@ class Scoreboard:
                 else:
                     cursor = conn.execute(
                         """
-                        SELECT team_name, SUM(score) as total_score, COUNT(*) as player_count
+                        SELECT team_name, SUM(score) as total_score, COUNT(*) as player_count,
+                               ROUND(CAST(SUM(score) AS FLOAT) / CAST(COUNT(*) AS FLOAT), 1) as average_score
                         FROM team_scores
                         WHERE DATE(timestamp) = DATE(?)
                         GROUP BY team_name
-                        ORDER BY CAST(total_score AS FLOAT) / CAST(player_count AS FLOAT) DESC
+                        ORDER BY average_score DESC
                     """,
                         (today,),
                     )
 
                 results = []
                 for row in cursor.fetchall():
-                    team_name, total_score, player_count = row
-                    average_score = (
-                        total_score / player_count if player_count > 0 else 0
-                    )
+                    team_name, total_score, player_count, average_score = row
                     results.append(
                         {
                             "team_name": team_name,
                             "total_score": total_score,
-                            "average_score": round(average_score, 1),
+                            "average_score": average_score,
                             "player_count": player_count,
                         }
                     )
