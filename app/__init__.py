@@ -34,7 +34,7 @@ def create_app(config_name=None):
     @app.after_request
     def set_security_headers(response):
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; img-src https:;"
+            "default-src 'self'; img-src 'self' https:;"
         )
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"

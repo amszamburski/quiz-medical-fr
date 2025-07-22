@@ -1,5 +1,15 @@
 /* Modern Medical Quiz Design System */
 
+/* Logo sizing override */
+.logo-small {
+  width: 256px !important;
+  height: 256px !important;
+  max-width: 256px !important;
+  max-height: 256px !important;
+  display: block !important;
+  margin: 0 auto var(--space-xl) auto !important;
+}
+
 /* CSS Reset and Base Styles */
 *,
 *::before,
