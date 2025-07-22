@@ -20,7 +20,7 @@ class OpenAIClient:
             print(f"OpenAI client initialization failed: {e}")
             raise
 
-        self.model = "gpt-4o"
+        self.model = "o3"
 
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
@@ -33,12 +33,20 @@ class OpenAIClient:
             print(
                 f"DEBUG: Making OpenAI API call with {len(messages)} messages, max_tokens={max_tokens}"
             )
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
+            # Configure parameters based on model
+            completion_params = {
+                "model": self.model,
+                "messages": messages,
+            }
+            
+            if self.model == "o3":
+                completion_params["max_completion_tokens"] = max_tokens
+                # o3 model only supports default temperature of 1
+            else:
+                completion_params["max_tokens"] = max_tokens
+                completion_params["temperature"] = temperature
+                
+            response = self.client.chat.completions.create(**completion_params)
             content = response.choices[0].message.content
             print(
                 f"DEBUG: OpenAI API response received, length: {len(content) if content else 0}"
