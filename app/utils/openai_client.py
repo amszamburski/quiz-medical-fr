@@ -26,7 +26,7 @@ class OpenAIClient:
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
     )
     def chat_completion(
-        self, messages: list, temperature: float = 0.7, max_tokens: int = 1200
+        self, messages: list, temperature: float = 0.7, max_tokens: int = 4000
     ) -> Optional[str]:
         """Make a chat completion request with retry logic."""
         try:
@@ -69,7 +69,7 @@ class OpenAIClient:
                 },
             ]
 
-            response = self.chat_completion(messages, temperature=0.8, max_tokens=2000)
+            response = self.chat_completion(messages, temperature=0.8, max_tokens=4000)
             if not response:
                 return None
 
@@ -117,7 +117,7 @@ RÉPONSE DE L'UTILISATEUR: {user_answer}
                 },
             ]
 
-            response = self.chat_completion(messages, temperature=0.3, max_tokens=1200)
+            response = self.chat_completion(messages, temperature=0.3, max_tokens=4000)
             if not response:
                 print("DEBUG: No response from OpenAI")
                 return {

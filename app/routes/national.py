@@ -4,8 +4,12 @@ from app.utils.constants import TEAM_LIST
 from app.utils.vignette import generate_vignette_and_question
 from app.utils.scorer import evaluate_answer, calculate_total_score
 from app.utils.scoreboard import scoreboard
+import uuid
 
 TOTAL_QUESTIONS = 1
+
+# In-memory cache for quiz data to avoid session size limits
+quiz_cache = {}
 
 national_bp = Blueprint("national", __name__)
 
@@ -29,11 +33,15 @@ def select_team():
         if key not in ['csrf_token', '_flashes']:
             session.pop(key, None)
     
+    # Generate unique session ID for this quiz
+    quiz_session_id = str(uuid.uuid4())
+    
     # Initialize session for national contest
     session.permanent = True  # Make session persistent
     session["contest_type"] = "national"
     session["team"] = team
     session["quiz_completed"] = False
+    session["quiz_session_id"] = quiz_session_id
 
     return redirect(url_for("national.quiz"))
 
@@ -49,8 +57,15 @@ def quiz():
     if session.get("quiz_completed", False):
         return redirect(url_for("national.results"))
 
-    # Generate question if not already in session
-    if "question" not in session:
+    # Get quiz session ID
+    quiz_session_id = session.get("quiz_session_id")
+    if not quiz_session_id:
+        print(f"DEBUG: No quiz session ID found, redirecting to team selection")
+        flash("Session invalide, veuillez recommencer", "error")
+        return redirect(url_for("national.index"))
+
+    # Generate question if not already cached
+    if quiz_session_id not in quiz_cache:
         print(f"DEBUG: Generating quiz question")
         question_data = generate_vignette_and_question()
         if not question_data:
@@ -59,12 +74,11 @@ def quiz():
 
         print(f"DEBUG: Generated question data keys: {question_data.keys()}")
         print(f"DEBUG: Question data size: {len(str(question_data))} bytes")
-        session["question"] = question_data
-        session.modified = True
-        print(f"DEBUG: Question stored in session, session keys: {list(session.keys())}")
-        print(f"DEBUG: Total session size estimate: {len(str(dict(session)))} bytes")
+        quiz_cache[quiz_session_id] = {"question": question_data}
+        print(f"DEBUG: Question stored in cache for session {quiz_session_id[:8]}...")
+        print(f"DEBUG: Session keys: {list(session.keys())}")
 
-    question = session["question"]
+    question = quiz_cache[quiz_session_id]["question"]
     print(f"DEBUG: Displaying question, keys: {question.keys()}")
     print(f"DEBUG: Session keys before rendering: {list(session.keys())}")
 
@@ -92,14 +106,17 @@ def submit_answer():
         flash("Session expirée", "error")
         return redirect(url_for("national.index"))
 
-    if "question" not in session:
-        print("DEBUG: No question in session - this should not happen!")
-        print("DEBUG: Session appears to have been truncated or cleared")
-        flash("Session perdue - veuillez recommencer", "error")
+    # Get quiz session ID and question from cache
+    quiz_session_id = session.get("quiz_session_id")
+    if not quiz_session_id or quiz_session_id not in quiz_cache:
+        print("DEBUG: No quiz data in cache - session may have expired")
+        print(f"DEBUG: Quiz session ID: {quiz_session_id}")
+        print(f"DEBUG: Quiz cache keys: {list(quiz_cache.keys())}")
+        flash("Session expirée - veuillez recommencer", "error")
         return redirect(url_for("national.index"))
 
     user_answer = request.form.get("answer", "").strip()
-    question_data = session["question"]
+    question_data = quiz_cache[quiz_session_id]["question"]
     
     print(f"DEBUG: User answer: {user_answer[:50]}...")
     print(f"DEBUG: Question data keys: {question_data.keys()}")
@@ -114,14 +131,17 @@ def submit_answer():
             "feedback": "Erreur lors de l'évaluation - aucune réponse de l'IA",
         }
 
-    # Store results and mark quiz as completed
-    session["user_answer"] = user_answer
-    session["evaluation"] = evaluation
+    # Store results in cache and mark quiz as completed
+    quiz_cache[quiz_session_id]["user_answer"] = user_answer
+    quiz_cache[quiz_session_id]["evaluation"] = evaluation
     session["quiz_completed"] = True
     session.modified = True
     
-    print(f"DEBUG: Session updated, showing feedback")
+    print(f"DEBUG: Results stored in cache, showing feedback")
     print(f"DEBUG: Quiz completed flag: {session.get('quiz_completed')}")
+    print(f"DEBUG: Evaluation stored in cache: {quiz_cache[quiz_session_id].get('evaluation') is not None}")
+    print(f"DEBUG: Session keys after update: {list(session.keys())}")
+    print(f"DEBUG: Session size estimate: {len(str(dict(session)))} bytes")
 
     return render_template(
         "result.html",
@@ -138,6 +158,12 @@ def submit_answer():
 @national_bp.route("/results")
 def results():
     """Show final results and update leaderboard."""
+    print(f"DEBUG: Results route accessed")
+    print(f"DEBUG: Session keys in results: {list(session.keys())}")
+    print(f"DEBUG: Session size in results: {len(str(dict(session)))} bytes")
+    print(f"DEBUG: Quiz completed in results: {session.get('quiz_completed')}")
+    print(f"DEBUG: Evaluation exists in results: {session.get('evaluation') is not None}")
+    
     if "team" not in session or session.get("contest_type") != "national":
         flash("Session expirée", "error")
         return redirect(url_for("national.index"))
@@ -146,8 +172,16 @@ def results():
         flash("Quiz non terminé", "error")
         return redirect(url_for("national.quiz"))
 
-    evaluation = session.get("evaluation")
+    # Get evaluation from cache
+    quiz_session_id = session.get("quiz_session_id")
+    if not quiz_session_id or quiz_session_id not in quiz_cache:
+        print("DEBUG: No quiz session ID or quiz data not found in cache")
+        flash("Session expirée", "error")
+        return redirect(url_for("national.index"))
+    
+    evaluation = quiz_cache[quiz_session_id].get("evaluation")
     if not evaluation:
+        print("DEBUG: No evaluation found in cache - redirecting to quiz")
         flash("Résultats non trouvés", "error")
         return redirect(url_for("national.quiz"))
 
@@ -161,11 +195,17 @@ def results():
     # Get current leaderboard
     leaderboard = scoreboard.get_top_teams()
 
+    # Clean up quiz cache
+    quiz_session_id = session.get("quiz_session_id")
+    if quiz_session_id and quiz_session_id in quiz_cache:
+        del quiz_cache[quiz_session_id]
+        print(f"DEBUG: Cleaned up quiz cache for session {quiz_session_id[:8]}...")
+
     # Clear session
     for key in [
         "contest_type",
         "team",
-        "question",
+        "quiz_session_id",
         "user_answer",
         "evaluation",
         "quiz_completed",

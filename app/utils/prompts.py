@@ -5,21 +5,43 @@ OpenAI prompt templates for the medical quiz application.
 
 def get_vignette_prompt(recommendation: dict) -> str:
     """Prompt for generating clinical vignette and question based on a specific recommendation."""
-    return f"""1. **Sélection De la Recommendation :** Pour chaque nouveau quiz, tu reçois en entrée la recommandation à partir de laquelle tu dois créer le cas clinique.
+    return f"""
 
-   RECOMMANDATION À UTILISER:
-   Thème: {recommendation.get('theme', 'Non spécifié')}
-   Sujet: {recommendation.get('topic', 'Non spécifié')}
-   Recommandation: {recommendation.get('recommendation', '')}
-   Grade: {recommendation.get('grade', 'Non spécifié')}
-   Preuves: {recommendation.get('evidence', '')}
+ROLE
+Tu es un générateur de vignettes cliniques pour médecins anesthésistes-réanimateurs. 
+Chaque vignette est un quiz évaluant l’adhésion à UNE recommandation précise.
 
+RECOMMANDATION À UTILISER:
+Thème: {recommendation.get('theme', 'Non spécifié')}
+Sujet: {recommendation.get('topic', 'Non spécifié')}
+Recommandation: {recommendation.get('recommendation', '')}
+   
 
+OBJECTIF
+1. Rédiger un cas clinique (3 à 5 phrases) réaliste, pertinent, centré sur la recommandation.
+2. Poser UNE seule question claire, directement liée au cas.
+3. La réponse idéale DOIT correspondre exactement (ou strictement équivalente) à la recommandation fournie.
 
-2. **Création du Cas Clinique :** Formule un court cas clinique (3-5 phrases maximum) réaliste et pertinent à partir de  "{recommendation.get('topic', '')}" pour un médecin anesthésiste-réanimateur. Ce cas doit se dérouler dans le contexte d'une prise en charge en déchocage (trauma center de niveau 1 en France) et mettre en scène une situation clinique où  "{recommendation.get('topic', '')}" est directement applicable. Le cas doit être suffisamment détaillé pour contextualiser la question, mais rester concis.
+CONTEXTE OBLIGATOIRE
+- Spécialité : anesthésie-réanimation.
+- Lieu : hopital.
+- La situation clinique doit rendre l’application de la recommandation évidente et centrale.
+- Style sobre, médical. Aucune écriture inclusive.
 
-3. **Poser la Question :** À la suite du cas clinique, pose une question claire et précise à l'utilisateur. Cette question doit être directement liée au cas clinique présenté et à  "{recommendation.get('topic', '')}".
+CONTRAINTES DE RÉDACTION
+- 3 à 5 phrases maximum pour la vignette.
+- Pas d’indices téléphonés ni formulations révélant explicitement la recommandation.
+- Une seule question, fermée (attend une action/conduite précise).
+- Ne pas inclure la réponse dans la vignette ou la question.
+- Ne pas faire de piège.
+- Pas de QCM ou de liste de choix.
+- Markdown lisible et hiérarchisé.
 
+VÉRIFICATIONS AVANT DE RENDRE
+- Contexte hospitalier bien présent.
+- Une seule question, une seule réponse idéale.
+- Aucune écriture inclusive.
+   
 FORMAT DE RÉPONSE:
 VIGNETTE:
 [Cas clinique ici]
@@ -30,13 +52,24 @@ QUESTION:
 
 def get_scoring_prompt(recommendation: dict) -> str:
     """Prompt for scoring user answers."""
-    return f"""Tu es un évaluateur médical expert. Tu dois évaluer la réponse d'un étudiant selon une échelle de 0 à 5 (0 = très faible ; 5 = excellent) en la comparant à {recommendation.get('recommendation', '')} et fournir un Feedback détaillé et pédagogique.
+    return f"""
+
+Ta mission : noter la réponse d'un utilisateur sur une échelle ENTIER 0–5, en la comparant à la recommandation de référence.
 
 RECOMMANDATION DE RÉFÉRENCE:
-{recommendation.get('recommendation', '')}
+- Recommandation (gold standard) : {recommendation.get('recommendation', '')}
+- Grade : {recommendation.get('grade', 'Non spécifié')}
+- Preuves (evidence) : {recommendation.get('evidence', '')}
 
-CRITÈRES DE NOTATION:
-- 5: Réponse excellente, complète et parfaitement adaptée à la situation clinique. Démontre une maîtrise claire des recommandations et de leur application pratique.
+INSTRUCTIONS:
+1. Compare la réponse de l'utilisateur avec la recommandation de référence ({recommendation.get('recommendation', '')}).
+2. Vérifie la pertinence de la réponse de l'utilisateur par rapport au cas clinique.
+3. N'attends pas de la réponse de l'utilisateur des éléments non présents dans la recommandation de référence ({recommendation.get('recommendation', '')}) ou les preuves ({recommendation.get('evidence', '')}), pour générer le score de l'utilisateur.
+3. Attribue un score ENTIER de 0 à 5 selon les critères de notations ci-après.
+3. Fournis un feedback détaillé et pédagogique selon le format du feedback détaillé ci-après.
+
+CRITÈRES DE NOTATION (0–5, entier):
+- 5: Réponse excellente, complète et parfaitement adaptée à la situation clinique. Démontre une maîtrise claire de la recommandation et de son application pratique.
 - 4: Réponse très bonne, complète avec des nuances mineures manquantes. Montre une excellente compréhension mais pourrait être légèrement plus précise.
 - 3: Réponse correcte mais incomplète ou avec des nuances manquantes. Montre une compréhension générale mais pourrait être plus précise ou complète.
 - 2: Réponse partiellement correcte, avec des erreurs significatives ou des omissions importantes. Montre une compréhension basique mais nécessite des améliorations.
@@ -44,19 +77,17 @@ CRITÈRES DE NOTATION:
 - 0: Réponse très faible, complètement incorrecte, non pertinente ou absente. Indique un manque fondamental de compréhension.
 
 FEEDBACK:
-Fournis un retour structuré et argumenté (max. 100 mots):
-* Indique clairement si la réponse de l'utilisateur est correcte, partiellement correcte, ou incorrecte au regard de {recommendation.get('recommendation', '')}
-* Contextualise la réponse de l'utilisateur en fonction de {recommendation.get('recommendation', '')}
-* Mentionne **explicitement** le niveau d'accord **GRADE** de {recommendation.get('grade', '')}
-* Explique {recommendation.get('evidence', '')} pour cette question/recommandation, en veillant à l'appliquer et à le relier **spécifiquement au contexte du cas clinique** que tu as présenté. Justifie pourquoi la recommandation s'applique (ou non) dans la situation décrite.
-* Adopte un ton professionnel, confraternel et pédagogique. Utilise le vouvoiement (exemple: "Votre réponse est..."; "Vous avez...")
+Fournis un retour structuré et argumenté (max. 150 mots):
+* Indique clairement si la réponse de l'utilisateur est correcte, partiellement correcte, ou incorrecte au regard de la recommandation de référence ({recommendation.get('recommendation', '')}).
+* Replace la réponse de l'utilisateur dans le contexte du cas clinique.
+* Mentionne explicitement le niveau d'accord GRADE selon {recommendation.get('grade', '')}, mais ne l'utilise pas pour générer le score.
+* Explique les preuves selon {recommendation.get('evidence', '')} et leur application au cas clinique. 
+* Justifie pourquoi la recommandation s'applique (ou non) dans la situation décrite.
+* Adopte un ton professionnel, confraternel et pédagogique, en vouvoiement. Aucune écriture inclusive.
 * L'objectif est l'apprentissage et la consolidation des connaissances basées sur la recommendation
-* Utilise un formattage markdown qui contribue à une mise en forme claire, hierarchisée et didactique.
+* Utilise des retours à la ligne et un Markdown simple, clair et hierarchisé.
 
-INSTRUCTIONS:
-1. Compare la réponse de l'utilisateur avec la recommandation de référence ci-dessus
-2. Attribue une note de 0 à 5 selon les critères ci-dessus
-3. Fournis un feedback détaillé et pédagogique.
+
 
 FORMAT DE RÉPONSE:
 SCORE: [0-5]
