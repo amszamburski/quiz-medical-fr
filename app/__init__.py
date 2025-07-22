@@ -1,6 +1,8 @@
 from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 import os
+import markdown
+from markupsafe import Markup
 
 # Handle zoneinfo import for different Python versions
 try:
@@ -18,7 +20,7 @@ def create_app(config_name=None):
     app.config["WTF_CSRF_TIME_LIMIT"] = None
 
     # Session configuration
-    app.config["MAX_COOKIE_SIZE"] = 65536  # 64KB instead of default 4KB
+    app.config["MAX_COOKIE_SIZE"] = 131072  # 128KB instead of 64KB to handle large question data
     app.config["SESSION_COOKIE_SECURE"] = False  # Set to True in production with HTTPS
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
@@ -29,6 +31,14 @@ def create_app(config_name=None):
 
     # Initialize CSRF protection
     CSRFProtect(app)
+
+    # Add markdown filter
+    @app.template_filter('markdown')
+    def markdown_filter(text):
+        """Convert markdown text to HTML."""
+        if not text:
+            return ""
+        return Markup(markdown.markdown(text, extensions=['nl2br']))
 
     # Security headers
     @app.after_request

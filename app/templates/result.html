@@ -16,7 +16,7 @@
         </div>
         <div class="card-content">
             <div class="alert {% if evaluation.score >= 4 %}alert-success{% elif evaluation.score >= 3 %}alert-warning{% else %}alert-danger{% endif %}">
-                <p class="mb-0" style="line-height: var(--line-height-relaxed);">{{ evaluation.feedback }}</p>
+                <div class="mb-0" style="line-height: var(--line-height-relaxed);">{{ evaluation.feedback | markdown }}</div>
             </div>
         </div>
     </div>

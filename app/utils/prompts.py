@@ -50,7 +50,8 @@ Fournis un retour structuré et argumenté (max. 100 mots):
 * Mentionne **explicitement** le niveau d'accord **GRADE** de {recommendation.get('grade', '')}
 * Explique {recommendation.get('evidence', '')} pour cette question/recommandation, en veillant à l'appliquer et à le relier **spécifiquement au contexte du cas clinique** que tu as présenté. Justifie pourquoi la recommandation s'applique (ou non) dans la situation décrite.
 * Adopte un ton professionnel, confraternel et pédagogique. Utilise le vouvoiement (exemple: "Votre réponse est..."; "Vous avez...")
-* L'objectif est l'apprentissage et la consolidation des connaissances basées sur la recommendation.
+* L'objectif est l'apprentissage et la consolidation des connaissances basées sur la recommendation
+* Utilise un formattage markdown qui contribue à une mise en forme claire, hierarchisée et didactique.
 
 INSTRUCTIONS:
 1. Compare la réponse de l'utilisateur avec la recommandation de référence ci-dessus

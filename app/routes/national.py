@@ -58,10 +58,11 @@ def quiz():
             return redirect(url_for("national.index"))
 
         print(f"DEBUG: Generated question data keys: {question_data.keys()}")
-        print(f"DEBUG: Question data size: {len(str(question_data))}")
+        print(f"DEBUG: Question data size: {len(str(question_data))} bytes")
         session["question"] = question_data
         session.modified = True
         print(f"DEBUG: Question stored in session, session keys: {list(session.keys())}")
+        print(f"DEBUG: Total session size estimate: {len(str(dict(session)))} bytes")
 
     question = session["question"]
     print(f"DEBUG: Displaying question, keys: {question.keys()}")
@@ -82,6 +83,7 @@ def submit_answer():
     """Process submitted answer and redirect to results."""
     print(f"DEBUG: submit_answer called")
     print(f"DEBUG: Session keys: {list(session.keys())}")
+    print(f"DEBUG: Session size estimate: {len(str(dict(session)))} bytes")
     print(f"DEBUG: Contest type: {session.get('contest_type')}")
     print(f"DEBUG: Team in session: {'team' in session}")
     
@@ -91,14 +93,10 @@ def submit_answer():
         return redirect(url_for("national.index"))
 
     if "question" not in session:
-        print("DEBUG: No question in session, regenerating...")
-        # Regenerate question instead of creating an error loop
-        question_data = generate_vignette_and_question()
-        if not question_data:
-            flash("Erreur lors de la génération de la question", "error")
-            return redirect(url_for("national.index"))
-        session["question"] = question_data
-        session.modified = True
+        print("DEBUG: No question in session - this should not happen!")
+        print("DEBUG: Session appears to have been truncated or cleared")
+        flash("Session perdue - veuillez recommencer", "error")
+        return redirect(url_for("national.index"))
 
     user_answer = request.form.get("answer", "").strip()
     question_data = session["question"]
