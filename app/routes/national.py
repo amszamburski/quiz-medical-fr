@@ -4,12 +4,10 @@ from app.utils.constants import TEAM_LIST
 from app.utils.vignette import generate_vignette_and_question
 from app.utils.scorer import evaluate_answer, calculate_total_score
 from app.utils.scoreboard import scoreboard
+from app.utils.session_storage import session_storage
 import uuid
 
 TOTAL_QUESTIONS = 1
-
-# In-memory cache for quiz data to avoid session size limits
-quiz_cache = {}
 
 national_bp = Blueprint("national", __name__)
 
@@ -64,8 +62,9 @@ def quiz():
         flash("Session invalide, veuillez recommencer", "error")
         return redirect(url_for("national.index"))
 
-    # Generate question if not already cached
-    if quiz_session_id not in quiz_cache:
+    # Generate question if not already stored in Redis
+    quiz_data = session_storage.get_quiz_data(quiz_session_id)
+    if not quiz_data:
         print(f"DEBUG: Generating quiz question")
         question_data = generate_vignette_and_question()
         if not question_data:
@@ -74,11 +73,15 @@ def quiz():
 
         print(f"DEBUG: Generated question data keys: {question_data.keys()}")
         print(f"DEBUG: Question data size: {len(str(question_data))} bytes")
-        quiz_cache[quiz_session_id] = {"question": question_data}
-        print(f"DEBUG: Question stored in cache for session {quiz_session_id[:8]}...")
-        print(f"DEBUG: Session keys: {list(session.keys())}")
+        
+        quiz_data = {"question": question_data}
+        if not session_storage.store_quiz_data(quiz_session_id, quiz_data):
+            flash("Erreur de stockage de session", "error")
+            return redirect(url_for("national.index"))
+        
+        print(f"DEBUG: Question stored in Redis for session {quiz_session_id[:8]}...")
 
-    question = quiz_cache[quiz_session_id]["question"]
+    question = quiz_data["question"]
     print(f"DEBUG: Displaying question, keys: {question.keys()}")
     print(f"DEBUG: Session keys before rendering: {list(session.keys())}")
 
@@ -106,17 +109,19 @@ def submit_answer():
         flash("Session expirée", "error")
         return redirect(url_for("national.index"))
 
-    # Get quiz session ID and question from cache
+    # Get quiz session ID and question from Redis storage
     quiz_session_id = session.get("quiz_session_id")
-    if not quiz_session_id or quiz_session_id not in quiz_cache:
-        print("DEBUG: No quiz data in cache - session may have expired")
+    quiz_data = session_storage.get_quiz_data(quiz_session_id) if quiz_session_id else None
+    
+    if not quiz_session_id or not quiz_data:
+        print("DEBUG: No quiz data in Redis storage - session may have expired")
         print(f"DEBUG: Quiz session ID: {quiz_session_id}")
-        print(f"DEBUG: Quiz cache keys: {list(quiz_cache.keys())}")
+        print(f"DEBUG: Session exists in Redis: {session_storage.session_exists(quiz_session_id) if quiz_session_id else False}")
         flash("Session expirée - veuillez recommencer", "error")
         return redirect(url_for("national.index"))
 
     user_answer = request.form.get("answer", "").strip()
-    question_data = quiz_cache[quiz_session_id]["question"]
+    question_data = quiz_data["question"]
     
     print(f"DEBUG: User answer: {user_answer[:50]}...")
     print(f"DEBUG: Question data keys: {question_data.keys()}")
@@ -131,17 +136,20 @@ def submit_answer():
             "feedback": "Erreur lors de l'évaluation - aucune réponse de l'IA",
         }
 
-    # Store results in cache and mark quiz as completed
-    quiz_cache[quiz_session_id]["user_answer"] = user_answer
-    quiz_cache[quiz_session_id]["evaluation"] = evaluation
+    # Store results in Redis and mark quiz as completed
+    quiz_data["user_answer"] = user_answer
+    quiz_data["evaluation"] = evaluation
+    
+    if not session_storage.update_quiz_data(quiz_session_id, quiz_data):
+        print("WARNING: Failed to update quiz data in Redis")
+    
     session["quiz_completed"] = True
     session.modified = True
     
-    print(f"DEBUG: Results stored in cache, showing feedback")
+    print(f"DEBUG: Results stored in Redis, showing feedback")
     print(f"DEBUG: Quiz completed flag: {session.get('quiz_completed')}")
-    print(f"DEBUG: Evaluation stored in cache: {quiz_cache[quiz_session_id].get('evaluation') is not None}")
+    print(f"DEBUG: Evaluation stored in Redis: {quiz_data.get('evaluation') is not None}")
     print(f"DEBUG: Session keys after update: {list(session.keys())}")
-    print(f"DEBUG: Session size estimate: {len(str(dict(session)))} bytes")
 
     return render_template(
         "result.html",
@@ -172,16 +180,18 @@ def results():
         flash("Quiz non terminé", "error")
         return redirect(url_for("national.quiz"))
 
-    # Get evaluation from cache
+    # Get evaluation from Redis storage
     quiz_session_id = session.get("quiz_session_id")
-    if not quiz_session_id or quiz_session_id not in quiz_cache:
-        print("DEBUG: No quiz session ID or quiz data not found in cache")
+    quiz_data = session_storage.get_quiz_data(quiz_session_id) if quiz_session_id else None
+    
+    if not quiz_session_id or not quiz_data:
+        print("DEBUG: No quiz session ID or quiz data not found in Redis")
         flash("Session expirée", "error")
         return redirect(url_for("national.index"))
     
-    evaluation = quiz_cache[quiz_session_id].get("evaluation")
+    evaluation = quiz_data.get("evaluation")
     if not evaluation:
-        print("DEBUG: No evaluation found in cache - redirecting to quiz")
+        print("DEBUG: No evaluation found in Redis - redirecting to quiz")
         flash("Résultats non trouvés", "error")
         return redirect(url_for("national.quiz"))
 
@@ -197,9 +207,10 @@ def results():
 
     # Clean up quiz cache
     quiz_session_id = session.get("quiz_session_id")
-    if quiz_session_id and quiz_session_id in quiz_cache:
-        del quiz_cache[quiz_session_id]
-        print(f"DEBUG: Cleaned up quiz cache for session {quiz_session_id[:8]}...")
+    # Clean up Redis session data
+    if quiz_session_id:
+        session_storage.delete_quiz_data(quiz_session_id)
+        print(f"DEBUG: Cleaned up Redis data for session {quiz_session_id[:8]}...")
 
     # Clear session
     for key in [
