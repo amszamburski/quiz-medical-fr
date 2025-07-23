@@ -37,11 +37,11 @@ class Scoreboard:
     def _init_redis(self):
         """Initialize Redis connection."""
         try:
-            redis_url = os.getenv("REDIS_URL") or os.getenv("UPSTASH_REDIS_REST_URL")
+            redis_url = os.getenv("KV_REST_API_URL") or os.getenv("UPSTASH_REDIS_REST_URL") or os.getenv("UPSTASH_REDIS_URL") or os.getenv("REDIS_URL")
             if redis_url:
                 if "upstash" in redis_url:
                     # Upstash Redis configuration
-                    token = os.getenv("UPSTASH_REDIS_REST_TOKEN")
+                    token = os.getenv("KV_REST_API_TOKEN") or os.getenv("UPSTASH_REDIS_REST_TOKEN") or os.getenv("UPSTASH_REDIS_TOKEN")
                     if token:
                         from upstash_redis import Redis
 
