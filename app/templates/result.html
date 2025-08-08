@@ -23,8 +23,13 @@
 
     {% if evaluation.recommendation and evaluation.recommendation.evidence %}
     <div class="card">
-        <div class="card-header">
-            <h2 class="mb-0">Recommandation SFAR</h2>
+        <div class="card-header header-with-badge">
+            <h2 class="mb-0" style="margin: 0;">Recommandation SFAR</h2>
+            {% if evaluation.recommendation.grade %}
+            <span class="badge badge-grade" aria-label="Grade de la recommandation" title="Grade de la recommandation">
+                Grade {{ evaluation.recommendation.grade }}
+            </span>
+            {% endif %}
         </div>
         <div class="card-content">
             <p style="line-height: var(--line-height-relaxed);">{{ evaluation.recommendation.recommendation }}</p>
