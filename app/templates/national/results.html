@@ -4,32 +4,25 @@
 {% block content %}
 <div style="max-width: 900px; margin: 0 auto;">
     <div class="card">
-        <div class="card-header text-center">
-            <h1 class="mb-md">Résultats SFARDLE</h1>
+        <div class="card-header text-center" style="background: linear-gradient(135deg, var(--accent-primary), #60a5fa); color: var(--text-inverse);">
+            <h1 class="mb-sm" style="color: var(--text-inverse);">Résultats SFARDLE</h1>
+            <div class="mb-0" style="opacity: 0.9;">Équipe</div>
+            <div style="font-size: var(--font-size-2xl); font-weight: 700;">{{ team }}</div>
         </div>
-        
+
         <div class="card-content">
-            <div class="score-display">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg);">
-                    <div class="text-center" style="flex: 1;">
-                        <div style="font-size: var(--font-size-2xl); font-weight: 700; color: var(--accent-primary);">
-                            {{ team }}
-                        </div>
-            
-                    </div>
-                    <div class="text-center" style="flex: 1;">
-                        <div class="score-value">{{ final_stats.total_score }}/{{ final_stats.max_possible }}</div>
-                        <div class="score-label">Score obtenu</div>
-                    </div>
-                </div>
+            <div class="score-display" style="box-shadow: none;">
+                <div class="score-value">{{ final_stats.total_score }}/{{ final_stats.max_possible }}</div>
+                <div class="score-label">Score obtenu</div>
             </div>
         </div>
     </div>
 
     {% if leaderboard %}
     <div class="leaderboard">
-        <div class="leaderboard-header">
-            <h2 class="mb-0" style="color: white;">Classement des équipes</h2>
+        <div class="leaderboard-header" style="background: linear-gradient(135deg, var(--accent-primary), #60a5fa);">
+            <h2 class="mb-0" style="color: var(--text-inverse);">Classement des équipes</h2>
+            <div style="font-size: var(--font-size-sm); opacity: .9;">Aujourd'hui</div>
         </div>
         
         {% for team_data in leaderboard %}

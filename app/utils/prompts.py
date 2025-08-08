@@ -24,13 +24,12 @@ OBJECTIF
 
 CONTEXTE OBLIGATOIRE
 - Spécialité : anesthésie-réanimation.
-- Lieu : hopital.
 - La situation clinique doit rendre l’application de la recommandation évidente et centrale.
 - Style sobre, médical. Aucune écriture inclusive.
 
 CONTRAINTES DE RÉDACTION
 - 3 à 5 phrases maximum pour la vignette.
-- Pas d’indices téléphonés ni formulations révélant explicitement la recommandation.
+- Pas d’indice évident ni formulation révélant explicitement la recommandation.
 - Une seule question, fermée (attend une action/conduite précise).
 - Ne pas inclure la réponse dans la vignette ou la question.
 - Ne pas faire de piège.
@@ -58,6 +57,7 @@ Ta mission : noter la réponse d'un utilisateur sur une échelle ENTIER 0–5, e
 
 RECOMMANDATION DE RÉFÉRENCE:
 - Recommandation (gold standard) : {recommendation.get('recommendation', '')}
+- Sujet: {recommendation.get('topic', 'Non spécifié')}
 - Grade : {recommendation.get('grade', 'Non spécifié')}
 - Preuves (evidence) : {recommendation.get('evidence', '')}
 
