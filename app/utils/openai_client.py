@@ -20,7 +20,8 @@ class OpenAIClient:
             print(f"OpenAI client initialization failed: {e}")
             raise
 
-        self.model = "o3"
+        # Default to GPT-5-mini for all API calls (can be overridden via env)
+        self.model = os.getenv("OPENAI_MODEL", "gpt-5-mini")
 
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
@@ -33,19 +34,20 @@ class OpenAIClient:
             print(
                 f"DEBUG: Making OpenAI API call with {len(messages)} messages, max_tokens={max_tokens}"
             )
-            # Configure parameters based on model
+            # Configure parameters depending on model family
+            # Reasoning-style models (e.g., o1/o3, gpt-5*) require max_completion_tokens
+            uses_reasoning_params = self.model in {"o1", "o3"} or self.model.startswith("gpt-5")
             completion_params = {
                 "model": self.model,
                 "messages": messages,
             }
-            
-            if self.model == "o3":
+            if uses_reasoning_params:
                 completion_params["max_completion_tokens"] = max_tokens
-                # o3 model only supports default temperature of 1
+                # Some reasoning models ignore or do not accept temperature; omit to avoid errors
             else:
                 completion_params["max_tokens"] = max_tokens
                 completion_params["temperature"] = temperature
-                
+
             response = self.client.chat.completions.create(**completion_params)
             content = response.choices[0].message.content
             print(
@@ -230,4 +232,3 @@ class MockOpenAIClient:
             feedback = f"Réponse insuffisante. La recommandation {correct_recommendation.get('grade', 'N/A')} requiert une approche plus complète. Consultez le contenu éducatif."
 
         return {"score": score, "feedback": feedback}
-
