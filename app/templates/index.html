@@ -7,12 +7,18 @@
         <div class="card-content">
             <img src="{{ url_for('static', filename='images/sfardle-logo.png') }}" alt="SFARDLE" class="mb-lg logo-small">
             
-            <div class="mb-xl">
+            <div class="mb-xl" style="display:flex; gap: var(--space-md); justify-content: center; flex-wrap: wrap;">
                 <a href="{{ url_for('national.index') }}" 
                    class="btn btn-primary btn-large"
                    role="button"
                    aria-describedby="game-description">
-                    Commencer le quiz
+                    Challenge national
+                </a>
+                <a href="{{ url_for('personal.index') }}"
+                   class="btn btn-primary btn-large"
+                   role="button"
+                   aria-label="Aller au challenge personnel">
+                    Challenge personnel
                 </a>
             </div>
             
@@ -20,11 +26,10 @@
                 <h3 class="mb-md">Comment ça marche ?</h3>
                 
                 <ul class="list-unstyled text-center mb-0 text-secondary">
-                    <li class="mb-sm">Testez vos connaissances des recommandations de la SFAR</li>
-                    <li class="mb-sm">Une question par jour</li>
-                    <li class="mb-sm">Choisissez votre équipe</li>
-                    <li class="mb-sm">Répondez de manière détaillée</li>
-                    <li class="mb-sm">Consultez votre score et le classement des équipes</li>
+                    <li class="mb-sm">Testez vos connaissances des recommandations de la SFAR !</li>
+                    <li class="mb-sm"><strong>Challenge national:</strong> choisissez votre équipe et répondez au SFARDLE du jour</li>
+                    <li class="mb-sm"><strong>Challenge personnel:</strong> entrainez-vous sur les sujets de votre choix</li>
+                    <li class="mb-sm">Consultez le classement des équipes et évaluez-vous</li>
                 </ul>
             </div>
         </div>

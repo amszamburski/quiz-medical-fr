@@ -573,3 +573,14 @@ a:hover { text-decoration-thickness: 2px; }
 
 /* Spinner keyframes (used by overlay JS) */
 @keyframes sfardle-spin { to { transform: rotate(360deg); } }
+
+/* === Personal Topic Selector === */
+.topic-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-md); }
+.topic-card { position: relative; padding: var(--space-md); border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); cursor: pointer; transition: box-shadow var(--transition-base), transform var(--transition-base), border-color var(--transition-fast), background var(--transition-fast); }
+.topic-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.topic-card input[type="checkbox"] { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.topic-card .label { display: inline-flex; align-items: center; gap: 10px; }
+.topic-card .check { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px; display: inline-block; background: #fff; transition: all var(--transition-fast); }
+.topic-card input[type="checkbox"]:checked ~ .check { border-color: var(--accent-primary); background: var(--accent-primary); box-shadow: 0 0 0 3px rgba(10,108,255,0.15); }
+.topic-card input[type="checkbox"]:checked ~ .text { color: var(--accent-primary); font-weight: 600; }
+.topic-card input[type="checkbox"]:checked ~ .card-bg { position:absolute; inset:0; border-radius: inherit; background: var(--accent-primary-light); z-index:-1; }

@@ -58,14 +58,25 @@
     </div>
     {% endif %}
 
-    <div class="card">
-        <div class="card-content text-center">
-            <h2 class="mb-lg">Quiz terminé !</h2>
-            <a href="{% if contest_type == 'national' %}{{ url_for('national.results') }}{% else %}{{ url_for('personal.results') }}{% endif %}"
-               class="btn btn-primary btn-large">
-                Voir les résultats finaux
-            </a>
-        </div>
+    {% if contest_type == 'personal' %}
+    <form id="next-question-form" method="POST" action="{{ url_for('personal.next_question') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    </form>
+    {% endif %}
+
+    <div class="text-center mt-lg" style="display:flex; gap: var(--space-md); justify-content:center; flex-wrap: wrap;">
+      <a
+        href="{% if contest_type == 'national' %}{{ url_for('national.results') }}{% else %}{{ url_for('personal.results') }}{% endif %}"
+        class="btn btn-secondary btn-large"
+      >
+        {% if contest_type == 'personal' %}Voir mon score{% else %}Voir les résultats finaux{% endif %}
+      </a>
+
+      {% if contest_type == 'personal' %}
+      <button type="submit" class="btn btn-primary btn-large" form="next-question-form">
+        Nouvelle question
+      </button>
+      {% endif %}
     </div>
 </div>
 {% endblock %}

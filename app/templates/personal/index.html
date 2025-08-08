@@ -1,37 +1,34 @@
 {% extends "base.html" %}
 {% block title %}Concours Personnel{% endblock %}
 {% block content %}
-<h1>Concours Personnel</h1>
-<p>Choisissez un sujet médical et testez vos connaissances avec 5 questions spécialisées !</p>
-
-<form method="POST" action="{{ url_for('personal.select_topic') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    <div style="margin: 20px 0;">
-        <label for="topic" style="display: block; margin-bottom: 10px; font-weight: bold;">Sélectionnez votre sujet :</label>
-        <select name="topic" id="topic" required style="padding: 10px; font-size: 16px; width: 300px; border: 1px solid #ccc; border-radius: 5px;">
-            <option value="">-- Choisissez un sujet --</option>
-            {% for topic in topics %}
-            <option value="{{ topic }}">{{ topic.replace('_', ' ').title() }}</option>
-            {% endfor %}
-        </select>
+<div style="max-width: 900px; margin: 0 auto;">
+  <div class="card">
+    <div class="card-header text-center">
+      <h1 class="mb-md">Challenge personnel</h1>
+      <div class="text-secondary" style="font-size: var(--font-size-base);">Choisissez un ou plusieurs sujets pour vous entraîner</div>
     </div>
+    <div class="card-content">
+      <form id="personal-topics-form" method="POST" action="{{ url_for('personal.select_topic') }}" class="text-center">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="topic-grid">
+          {% for topic in topics %}
+          <label class="topic-card">
+            <input type="checkbox" name="topics" value="{{ topic }}" />
+            <span class="card-bg"></span>
+            <span class="check" aria-hidden="true"></span>
+            <span class="text">{{ topic.replace('_', ' ').title() }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </form>
+    </div>
+  </div>
 
-    <button type="submit" style="padding: 12px 24px; background: #17a2b8; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-        Commencer le Quiz
-    </button>
-</form>
-
-<div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-    <h3>Règles du Concours Personnel</h3>
-    <ul>
-        <li>5 questions spécialisées sur le sujet choisi</li>
-        <li>Score personnel affiché à la fin</li>
-        <li>Feedback détaillé après chaque question</li>
-        <li>Contenu éducatif avec références scientifiques</li>
-    </ul>
+  <div class="text-center mt-lg" style="display:flex; gap: var(--space-md); justify-content:center; flex-wrap: wrap;">
+    <a href="{{ url_for('main.index') }}" class="btn btn-secondary btn-large">Retour à l'accueil</a>
+    <button type="submit" class="btn btn-primary btn-large" form="personal-topics-form">Commencer</button>
+  </div>
 </div>
 
-<p style="margin-top: 20px;">
-    <a href="{{ url_for('main.index') }}" style="color: #007bff;">Retour à l'accueil</a>
-</p>
+
 {% endblock %}
