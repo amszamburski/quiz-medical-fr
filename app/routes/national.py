@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session, redirect, url_for, flash
+from flask import Blueprint, render_template, request, session, redirect, url_for, flash, jsonify
 from datetime import datetime, timedelta
 from app.utils.constants import TEAM_LIST
 from app.utils.vignette import generate_vignette_and_question
@@ -41,7 +41,7 @@ def select_team():
     session["quiz_completed"] = False
     session["quiz_session_id"] = quiz_session_id
 
-    return redirect(url_for("national.quiz"))
+    return redirect(url_for("national.quiz_loading"))
 
 
 @national_bp.route("/quiz")
@@ -93,6 +93,46 @@ def quiz():
         contest_type="national",
         team=session["team"],
     )
+
+
+@national_bp.route("/quiz_loading")
+def quiz_loading():
+    """Loading screen shown while preparing quiz data via OpenAI."""
+    if "team" not in session or session.get("contest_type") != "national":
+        flash("Veuillez d'abord sélectionner votre équipe", "error")
+        return redirect(url_for("national.index"))
+    return render_template("national/loading.html")
+
+
+@national_bp.route("/quiz_prepare")
+def quiz_prepare():
+    """Prepare quiz data (idempotent). Returns JSON status."""
+    if "team" not in session or session.get("contest_type") != "national":
+        return jsonify({"ok": False, "error": "invalid_session"}), 400
+
+    quiz_session_id = session.get("quiz_session_id")
+    if not quiz_session_id:
+        return jsonify({"ok": False, "error": "no_session_id"}), 400
+
+    # Check if already prepared
+    quiz_data = session_storage.get_quiz_data(quiz_session_id)
+    if quiz_data:
+        return jsonify({"ok": True, "status": "ready"})
+
+    # Generate now
+    try:
+        question_data = generate_vignette_and_question()
+        if not question_data:
+            return jsonify({"ok": False, "error": "generation_failed"}), 500
+
+        data = {"question": question_data}
+        stored = session_storage.store_quiz_data(quiz_session_id, data)
+        if not stored:
+            return jsonify({"ok": False, "error": "store_failed"}), 500
+        return jsonify({"ok": True, "status": "ready"})
+    except Exception as e:
+        print(f"ERROR: quiz_prepare failed: {e}")
+        return jsonify({"ok": False, "error": "exception"}), 500
 
 
 @national_bp.route("/submit_answer", methods=["POST"])
