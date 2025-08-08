@@ -20,8 +20,8 @@ class OpenAIClient:
             print(f"OpenAI client initialization failed: {e}")
             raise
 
-        # Default to GPT-5-mini for all API calls (can be overridden via env)
-        self.model = os.getenv("OPENAI_MODEL", "gpt-5-mini")
+        # Default to GPT-5 for all API calls (can be overridden via env)
+        self.model = os.getenv("OPENAI_MODEL", "gpt-5")
 
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
