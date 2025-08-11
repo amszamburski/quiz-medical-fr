@@ -18,6 +18,8 @@ bleach==6.1.0
 pytz==2024.1
 pandas==2.2.0
 markdown==3.5.1
+openpyxl==3.1.2
+xlrd==1.2.0
 
 # Development
 pytest==8.0.0

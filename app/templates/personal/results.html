@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Résultats - Concours Personnel{% endblock %}
 {% block content %}
-<div style="max-width: 800px; margin: 0 auto;">
-  <h1 class="text-center">Résultats de votre challenge personnel</h1>
+<div style="max-width: 1000px; margin: 0 auto;">
+  <h1 class="text-center">Tableau de bord personnel</h1>
 
   <div class="score-display" style="margin-top: var(--space-lg);">
     <div class="score-value">{{ mean_score }}/5</div>
@@ -11,12 +11,61 @@
     </div>
   </div>
 
-  {% if topics %}
-  <div class="text-center" style="margin-top: var(--space-md);">
-    <strong>Sujets:</strong>
-    {% for t in topics %}
-      <span class="badge" style="margin-right:6px;">{{ t.replace('_', ' ').title() }}</span>
-    {% endfor %}
+  {% if topic_stats and topic_stats|length > 0 %}
+  <div style="margin-top: var(--space-xl);">
+    <h2 class="mb-md">Performance par sujet</h2>
+    <div class="mb-md" style="display:flex; gap: var(--space-md); flex-wrap: wrap; align-items:center;">
+      <div><strong>Légende:</strong></div>
+      <div class="legend-dot level-excellent">Excellent</div>
+      <div class="legend-dot level-tres-bien">Très bien</div>
+      <div class="legend-dot level-bien">Bien</div>
+      <div class="legend-dot level-moyen">Moyen</div>
+      <div class="legend-dot level-insuffisant">Insuffisant</div>
+    </div>
+    <div class="topic-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 320px)); gap: var(--space-md); justify-content: center;">
+      {% for stat in topic_stats %}
+      <div class="card level-card level-{{ stat.level }}">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-weight:600; line-height:1.2; display:flex; align-items:center; gap:8px;">
+            <span class="level-dot level-{{ stat.level }}" aria-hidden="true"></span>
+            {{ stat.topic | inline_bold }}
+          </div>
+          <span class="badge level-badge level-{{ stat.level }}">{{ stat.average_score }}/5</span>
+        </div>
+        <div class="card-content">
+          <div style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-sm);">
+            Niveau: {{ stat.category }}
+          </div>
+
+          <div style="margin-bottom: var(--space-sm);">
+            <div style="display:flex; justify-content:space-between; font-size: var(--font-size-sm); color: var(--text-secondary);">
+              <span>Progression</span>
+              <span>{{ stat.answered_count }} / {{ stat.total_available }}</span>
+            </div>
+            {# Safe guards for zero totals; segmented base uses --segments #}
+            {% set _total = stat.total_available %}
+            {% set _ans = stat.answered_count %}
+            {% set _segments = _total if _total > 0 else 1 %}
+
+            <div
+              class="meter level-{{ stat.level }}"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="{{ _segments }}"
+              aria-valuenow="{{ _ans }}"
+              aria-label="Progression: {{ _ans }} of {{ _total }} answered"
+              style="--segments: {{ _segments }}; --active: {{ _ans }};"
+            >
+              <div class="fill base level-{{ stat.level }}" aria-hidden="true"></div>
+              <div class="fill fg level-{{ stat.level }}"
+                   style="width: min(100%, calc(100% * var(--active) / var(--segments)));"
+                   aria-hidden="true"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
   </div>
   {% endif %}
 

@@ -43,8 +43,11 @@
                 {% if evaluation.recommendation.references %}
                 <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
                     <strong>Références:</strong> 
-                    {% if evaluation.recommendation.link and evaluation.recommendation.link.strip() %}
-                        <a href="{{ evaluation.recommendation.link }}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-primary); text-decoration: underline;">
+                    {# Safely handle possible non-string/NaN link values #}
+                    {% set _link = evaluation.recommendation.link if evaluation.recommendation else '' %}
+                    {% set _link_str = _link|string %}
+                    {% if _link_str and _link_str|lower != 'nan' and _link_str.strip() %}
+                        <a href="{{ _link_str }}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-primary); text-decoration: underline;">
                             {{ evaluation.recommendation.references }}
                         </a>
                     {% else %}

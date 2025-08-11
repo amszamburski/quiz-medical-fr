@@ -5,14 +5,14 @@
 <div style="max-width: 800px; margin: 0 auto;">
     <div class="card">
         <div class="card-header">
-            <h1 class="mb-sm">Question SFARDLE</h1>
+            <h1 class="mb-sm">SFARDLE</h1>
             {% if contest_type == 'national' %}
                 <p class="mb-0" style="color: var(--text-secondary);">
                     <strong>Équipe:</strong> {{ team }}
                 </p>
             {% elif contest_type == 'personal' %}
                 <p class="mb-0" style="color: var(--text-secondary);">
-                    <strong>Sujet:</strong> {{ topic.replace('_', ' ').title() }}
+                    <strong>Sujet:</strong> {{ topic | inline_bold }}
                 </p>
             {% endif %}
         </div>
@@ -37,14 +37,15 @@
     </div>
 
     <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">Votre réponse</h2>
+        </div>
         <div class="card-content">
             <form method="POST" action="{% if contest_type == 'national' %}{{ url_for('national.submit_answer') }}{% else %}{{ url_for('personal.submit_answer') }}{% endif %}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                
+
                 <div class="form-group">
-                    <label for="answer" class="form-label">
-                        Votre réponse
-                    </label>
+                    <label for="answer" class="sr-only">Votre réponse</label>
                     <textarea name="answer" id="answer" required
                               class="form-control"
                               style="min-height: 120px; resize: vertical;"
@@ -55,9 +56,14 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">
+                <div style="display:flex; gap: var(--space-md); justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                  <a href="{{ url_for('main.index') }}" class="btn btn-secondary btn-large">
+                    Retourner à l'accueil
+                  </a>
+                  <button type="submit" class="btn btn-primary btn-large">
                     Valider ma réponse
-                </button>
+                  </button>
+                </div>
             </form>
         </div>
     </div>

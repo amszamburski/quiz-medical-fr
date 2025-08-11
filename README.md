@@ -50,10 +50,21 @@ Variables requises :
 - `SECRET_KEY` : Clé secrète Flask pour les sessions
 - `REDIS_URL` : URL Redis (optionnel, SQLite par défaut)
 
-3. **Installer openpyxl pour lire les fichiers Excel :**
+3. **Mettre à jour les recommandations depuis un fichier Excel (.xls/.xlsx) :**
 ```bash
-pip install openpyxl
+# Activez l'environnement virtuel si besoin
+source venv/bin/activate
+
+# Convertir le nouveau fichier Excel vers CSV utilisé par l'app
+python scripts/update_recommendations.py /chemin/vers/nouveau_fichier.xls --sheet 0
+
+# Par défaut, le CSV est écrit dans data/recommendations.csv (backup auto)
 ```
+
+Notes:
+- Le script accepte .xls et .xlsx. Les dépendances nécessaires (`openpyxl` et `xlrd==1.2.0`) sont listées dans `requirements.txt`.
+- Le script tente d'apparier automatiquement les colonnes attendues: Theme/Topic/Recommendation/Grade/Evidence/References/Link (les alias français sont supportés: Thème, Sujet, Recommandation, Preuves, Références, Lien).
+- Les lignes sans Recommendation ou Evidence sont ignorées (aligné avec la logique de l'app).
 
 ## Utilisation
 

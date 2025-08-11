@@ -40,6 +40,78 @@ def create_app(config_name=None):
             return ""
         return Markup(markdown.markdown(text, extensions=['nl2br']))
 
+    @app.template_filter('inline_bold')
+    def inline_bold_filter(text):
+        """Render inline bold markers from Topic strings.
+
+        - Converts **bold** to <strong>bold</strong>
+        - Leaves existing HTML <b>/<strong> as-is
+        - Does not wrap in <p> (keeps inline)
+        """
+        if not text:
+            return ""
+        import re
+        s = str(text)
+        # Replace Markdown-style bold with strong tags
+        s = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", s)
+        return Markup(s)
+
+    @app.template_filter('topic_parts')
+    def topic_parts_filter(text):
+        """Split a Topic string into (title, subtitle).
+
+        Prefer bold-marked title (between ** **). If none, split at first colon.
+        Returns a 2-tuple of plain strings: (title, subtitle).
+        """
+        if not text:
+            return ("", "")
+        import re
+        s = str(text)
+        # If markdown bold present, use first bold span as title
+        m = re.search(r"\*\*(.+?)\*\*", s)
+        if m:
+            title = m.group(1).strip()
+            # Remove the bold markers and title from the text to get remainder
+            remainder = (s[:m.start()] + s[m.end():]).strip()
+            # Strip common separators at start
+            remainder = remainder.lstrip(" :–—-\u2013\u2014")
+            return (title, remainder.strip())
+        # Fallback: split at colon
+        if ":" in s:
+            left, right = s.split(":", 1)
+            return (left.strip(), right.strip())
+        return (s.strip(), "")
+
+    @app.template_filter('normalize_link')
+    def normalize_link_filter(value):
+        """Normalize link/DOI values to clickable URLs.
+
+        - Strips whitespace and trailing punctuation
+        - Converts "doi:10.xxxx/yyy" or "10.xxxx/yyy" to https://doi.org/...
+        - Adds https scheme to bare www.* links
+        """
+        try:
+            import re
+            s = str(value or "").strip()
+            if not s or s.lower() == "nan":
+                return ""
+            s = s.rstrip(".,); ")
+            # Handle doi: prefix
+            if s.lower().startswith("doi:"):
+                s = s.split(":", 1)[1].strip()
+            # Raw DOI
+            if re.match(r"^10\.\d{4,9}/\S+", s):
+                return f"https://doi.org/{s}"
+            # Bare domain
+            if s.startswith("www."):
+                return f"https://{s}"
+            # Already a URL
+            if s.startswith("http://") or s.startswith("https://"):
+                return s
+            return s
+        except Exception:
+            return ""
+
     # Security headers
     @app.after_request
     def set_security_headers(response):

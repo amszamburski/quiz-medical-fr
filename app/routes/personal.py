@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash
 from app.utils.constants import QUESTION_COUNT
-from app.utils.db import list_topics
+from app.utils.db import list_topics, recommendations_db
 from app.utils.vignette import generate_vignette_and_question
-from app.utils.scorer import evaluate_answer, calculate_total_score
+from app.utils.scorer import evaluate_answer, calculate_total_score, get_score_category
 from app.utils.session_storage import session_storage
 import uuid
 
@@ -34,12 +34,27 @@ def select_topic():
     session["contest_type"] = "personal"
     session["quiz_session_id"] = quiz_session_id
 
+    total_questions = len(selected)  # one question per selected topic per cycle
+
+    # Build per-topic pools of recommendations (shuffled)
+    import random
+    topic_pools = {}
+    for t in selected:
+        try:
+            recs = recommendations_db.get_recommendations_by_topic(t)
+        except Exception:
+            recs = []
+        random.shuffle(recs)
+        topic_pools[t] = recs
+
     quiz_data = {
         "topics": selected,
         "current_question": 0,
         "questions": [],
         "answers": [],
         "scores": [],
+        "total_questions": total_questions,
+        "topic_pools": topic_pools,
     }
 
     if not session_storage.store_quiz_data(quiz_session_id, quiz_data):
@@ -67,13 +82,29 @@ def quiz():
         return redirect(url_for("personal.index"))
 
     current_q = quiz_data.get("current_question", 0)
+    topics = quiz_data.get("topics", [])
+    # Total topics still active this round (with remaining recommendations)
+    pools = quiz_data.get("topic_pools", {})
+    active_topics = [t for t in topics if pools.get(t)] if topics else []
+    total_questions = len(active_topics)
 
     # Generate new question if needed
     if len(quiz_data["questions"]) <= current_q:
-        import random
-        topics = quiz_data.get("topics", [])
-        topic = random.choice(topics) if topics else None
-        question_data = generate_vignette_and_question(topic=topic)
+        pools = quiz_data.get("topic_pools", {})
+        if not topics:
+            flash("Aucun sujet sélectionné", "error")
+            return redirect(url_for("personal.index"))
+        # Round-robin among active topics only; if none, finish
+        active_topics = [t for t in topics if pools.get(t)]
+        if not active_topics:
+            return redirect(url_for("personal.results"))
+        target_topic = active_topics[current_q % len(active_topics)]
+        pool = pools.get(target_topic, [])
+        # Take next recommendation from the pool
+        recommendation = pool.pop(0)
+        pools[target_topic] = pool
+        quiz_data["topic_pools"] = pools
+        question_data = generate_vignette_and_question(topic=target_topic, recommendation=recommendation)
         if not question_data:
             flash("Erreur lors de la génération de la question", "error")
             return redirect(url_for("personal.index"))
@@ -89,7 +120,7 @@ def quiz():
         "quiz.html",
         question=question,
         question_number=question_number,
-        total_questions=QUESTION_COUNT,
+        total_questions=total_questions,
         contest_type="personal",
         topic=question.get("topic"),
     )
@@ -160,7 +191,6 @@ def next_question():
     current_q = quiz_data.get("current_question", 0)
     quiz_data["current_question"] = current_q + 1
     session_storage.update_quiz_data(quiz_session_id, quiz_data)
-
     return redirect(url_for("personal.quiz"))
 
 
@@ -184,7 +214,60 @@ def results():
     scores = quiz_data.get("scores", [])
     answers_count = len(scores)
     mean_score = round(sum(scores) / answers_count, 1) if answers_count else 0
-    topics = quiz_data.get("topics", [])
+
+    # Build per-topic statistics based on answered questions
+    questions = quiz_data.get("questions", [])
+    topic_map = {}
+    for i in range(min(len(questions), answers_count)):
+        q = questions[i] or {}
+        t = q.get("topic") or "Sujet inconnu"
+        s = scores[i] if i < len(scores) else 0
+        if t not in topic_map:
+            topic_map[t] = {
+                "topic": t,
+                "answered_count": 0,
+                "total_available": 0,  # will compute using pools below
+                "score_sum": 0.0,
+            }
+        topic_map[t]["answered_count"] += 1
+        topic_map[t]["score_sum"] += float(s or 0)
+
+    def score_level(avg: float) -> str:
+        # Map average score (0-5) to a discrete level for CSS classes
+        if avg >= 4.5:
+            return "excellent"
+        if avg >= 3.75:
+            return "tres-bien"
+        if avg >= 3.0:
+            return "bien"
+        if avg >= 2.0:
+            return "moyen"
+        return "insuffisant"
+
+    topic_stats = []
+    pools = quiz_data.get("topic_pools", {}) or {}
+    for t, v in topic_map.items():
+        answered = v["answered_count"]
+        remaining = len(pools.get(t, []))
+        total = answered + remaining
+        avg = round((v["score_sum"] / answered), 1) if answered else 0
+        percentage = round((avg / 5.0) * 100, 1)
+        answered_pct = round((answered / total) * 100, 1) if total > 0 else 0
+        topic_stats.append(
+            {
+                "topic": t,
+                "answered_count": answered,
+                "total_available": total,
+                "average_score": avg,
+                "percentage": percentage,
+                "answered_percentage": answered_pct,
+                "category": get_score_category(avg),
+                "level": score_level(avg),
+            }
+        )
+
+    # Sort by average score descending
+    topic_stats.sort(key=lambda x: x["average_score"], reverse=True)
 
     # Clear server-side state and session keys
     session_storage.delete_quiz_data(quiz_session_id)
@@ -192,5 +275,8 @@ def results():
         session.pop(key, None)
 
     return render_template(
-        "personal/results.html", mean_score=mean_score, answers_count=answers_count, topics=topics
+        "personal/results.html",
+        mean_score=mean_score,
+        answers_count=answers_count,
+        topic_stats=topic_stats,
     )
