@@ -6,10 +6,54 @@ from app.utils.scorer import evaluate_answer, calculate_total_score
 from app.utils.scoreboard import scoreboard
 from app.utils.session_storage import session_storage
 import uuid
+import json
+import pytz
 
 TOTAL_QUESTIONS = 1
 
 national_bp = Blueprint("national", __name__)
+
+
+def _paris_today_str():
+    tz = pytz.timezone("Europe/Paris")
+    return datetime.now(tz).strftime("%Y-%m-%d")
+
+
+def _daily_question_key():
+    return f"national:question:{_paris_today_str()}"
+
+
+def _get_or_create_daily_question():
+    rc = session_storage.redis_client
+    key = _daily_question_key()
+    # Try fetch existing
+    if rc:
+        try:
+            raw = rc.get(key)
+            if raw:
+                if isinstance(raw, bytes):
+                    raw = raw.decode("utf-8")
+                return json.loads(raw)
+        except Exception as e:
+            print(f"WARNING: read daily question failed: {e}")
+
+    # Generate a new shared question
+    q = generate_vignette_and_question()
+    if not q:
+        return None
+    if rc:
+        try:
+            rc.setex(key, 26 * 3600, json.dumps(q, default=str))
+            # Best-effort cleanup of yesterday
+            try:
+                tz = pytz.timezone("Europe/Paris")
+                yday = (datetime.now(tz) - timedelta(days=1)).strftime("%Y-%m-%d")
+                rc.delete(f"national:question:{yday}")
+            except Exception:
+                pass
+        except Exception as e:
+            print(f"WARNING: store daily question failed: {e}")
+    return q
 
 
 @national_bp.route("/")
@@ -55,33 +99,17 @@ def quiz():
     if session.get("quiz_completed", False):
         return redirect(url_for("national.results"))
 
-    # Get quiz session ID
+    # Ensure session id exists
     quiz_session_id = session.get("quiz_session_id")
     if not quiz_session_id:
-        print(f"DEBUG: No quiz session ID found, redirecting to team selection")
         flash("Session invalide, veuillez recommencer", "error")
         return redirect(url_for("national.index"))
 
-    # Generate question if not already stored in Redis
-    quiz_data = session_storage.get_quiz_data(quiz_session_id)
-    if not quiz_data:
-        print(f"DEBUG: Generating quiz question")
-        question_data = generate_vignette_and_question()
-        if not question_data:
-            flash("Erreur lors de la génération de la question", "error")
-            return redirect(url_for("national.index"))
-
-        print(f"DEBUG: Generated question data keys: {question_data.keys()}")
-        print(f"DEBUG: Question data size: {len(str(question_data))} bytes")
-        
-        quiz_data = {"question": question_data}
-        if not session_storage.store_quiz_data(quiz_session_id, quiz_data):
-            flash("Erreur de stockage de session", "error")
-            return redirect(url_for("national.index"))
-        
-        print(f"DEBUG: Question stored in Redis for session {quiz_session_id[:8]}...")
-
-    question = quiz_data["question"]
+    # Use the daily shared question
+    question = _get_or_create_daily_question()
+    if not question:
+        flash("Erreur lors de la préparation de la question du jour", "error")
+        return redirect(url_for("national.index"))
     print(f"DEBUG: Displaying question, keys: {question.keys()}")
     print(f"DEBUG: Session keys before rendering: {list(session.keys())}")
 
@@ -110,25 +138,9 @@ def quiz_prepare():
     if "team" not in session or session.get("contest_type") != "national":
         return jsonify({"ok": False, "error": "invalid_session"}), 400
 
-    quiz_session_id = session.get("quiz_session_id")
-    if not quiz_session_id:
-        return jsonify({"ok": False, "error": "no_session_id"}), 400
-
-    # Check if already prepared
-    quiz_data = session_storage.get_quiz_data(quiz_session_id)
-    if quiz_data:
-        return jsonify({"ok": True, "status": "ready"})
-
-    # Generate now
     try:
-        question_data = generate_vignette_and_question()
-        if not question_data:
+        if _get_or_create_daily_question() is None:
             return jsonify({"ok": False, "error": "generation_failed"}), 500
-
-        data = {"question": question_data}
-        stored = session_storage.store_quiz_data(quiz_session_id, data)
-        if not stored:
-            return jsonify({"ok": False, "error": "store_failed"}), 500
         return jsonify({"ok": True, "status": "ready"})
     except Exception as e:
         print(f"ERROR: quiz_prepare failed: {e}")
@@ -149,19 +161,14 @@ def submit_answer():
         flash("Session expirée", "error")
         return redirect(url_for("national.index"))
 
-    # Get quiz session ID and question from Redis storage
+    # Get today's question and session id
     quiz_session_id = session.get("quiz_session_id")
-    quiz_data = session_storage.get_quiz_data(quiz_session_id) if quiz_session_id else None
-    
-    if not quiz_session_id or not quiz_data:
-        print("DEBUG: No quiz data in Redis storage - session may have expired")
-        print(f"DEBUG: Quiz session ID: {quiz_session_id}")
-        print(f"DEBUG: Session exists in Redis: {session_storage.session_exists(quiz_session_id) if quiz_session_id else False}")
+    question_data = _get_or_create_daily_question()
+    if not quiz_session_id or not question_data:
         flash("Session expirée - veuillez recommencer", "error")
         return redirect(url_for("national.index"))
 
     user_answer = request.form.get("answer", "").strip()
-    question_data = quiz_data["question"]
     
     print(f"DEBUG: User answer: {user_answer[:50]}...")
     print(f"DEBUG: Question data keys: {question_data.keys()}")
@@ -176,19 +183,17 @@ def submit_answer():
             "feedback": "Erreur lors de l'évaluation - aucune réponse de l'IA",
         }
 
-    # Store results in Redis and mark quiz as completed
-    quiz_data["user_answer"] = user_answer
-    quiz_data["evaluation"] = evaluation
-    
-    if not session_storage.update_quiz_data(quiz_session_id, quiz_data):
-        print("WARNING: Failed to update quiz data in Redis")
+    # Store results for this session (do not modify shared question key)
+    store = {"question": question_data, "user_answer": user_answer, "evaluation": evaluation}
+    if not session_storage.update_quiz_data(quiz_session_id, store):
+        print("WARNING: Failed to update quiz results in Redis")
     
     session["quiz_completed"] = True
     session.modified = True
     
     print(f"DEBUG: Results stored in Redis, showing feedback")
     print(f"DEBUG: Quiz completed flag: {session.get('quiz_completed')}")
-    print(f"DEBUG: Evaluation stored in Redis: {quiz_data.get('evaluation') is not None}")
+    print(f"DEBUG: Evaluation stored in Redis: {store.get('evaluation') is not None}")
     print(f"DEBUG: Session keys after update: {list(session.keys())}")
 
     return render_template(
