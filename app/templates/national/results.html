@@ -13,15 +13,15 @@
 {% endif %}
 
 <!-- Center the whole page content in the viewport -->
-<main style="min-height:100svh; display:grid; place-items:center;">
+<main class="center-viewport">
 
-  <div style="max-width: 1100px; width:100%; margin: 0 auto;">
+  <div class="container-xl">
     <div class="card">
-      <div class="card-header text-center results-hero results-hero--xl leaderboard-header-gradient" style="color: var(--text-inverse);">
+      <div class="card-header text-center results-hero results-hero--xl leaderboard-header-gradient" style="color: var(--text-inverse); padding-bottom: var(--space-sm);">
         <div class="brand-header brand-header--stack">
           <img src="{{ url_for('static', filename='images/sfardle-logo.png') }}" alt="SFARDLE" class="brand-logo brand-logo-xxxxl" />
           <h1 class="brand-title-inverse" style="margin-top: var(--space-sm);">Challenge national</h1>
-          <div class="brand-meta" style="margin-top: var(--space-sm);">
+          <div class="brand-meta" style="margin-top: var(--space-xs); margin-bottom: 0;">
             <span class="badge badge-soft">
               Votre équipe&nbsp;{{ team }}{% if ns.rank is not none %} se classe au rang&nbsp; {{ ns.rank }}{% endif %}
             </span>
@@ -30,14 +30,11 @@
       </div>
 
       <div class="card-content">
-        
-
-        <!-- Already centered KPI card -->
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-lg); align-items: stretch;">
-          <div class="card level-card level-{{ final_stats.category | lower | replace(' ', '-') | replace('é','e') | replace('É','E') }}"
-               style="border: 1px solid var(--border); border-left: 6px solid var(--level-color); border-right: 6px solid var(--level-color); justify-self:center; width:100%; max-width:520px;">
+        <!-- KPIs -->
+        <div class="kpi-grid">
+          <div class="card kpi-card level-{{ final_stats.category | lower | replace(' ', '-') | replace('é','e') | replace('É','E') }}" style="justify-self:center; width:100%; max-width:520px;">
             <div class="card-content">
-              <div class="text-center" style="padding: var(--space-lg) 0;">
+              <div class="text-center">
                 <div class="score-value">{{ final_stats.total_score }}/{{ final_stats.max_possible }}</div>
                 <div class="score-label">Votre performance</div>
               </div>
@@ -45,10 +42,7 @@
           </div>
         </div>
 
-        <!-- Tiny separator + category badge centered below the card -->
-        <div style="display:flex; justify-content:center;">
-          <div style="width:72px; height:2px; background:var(--border); margin: var(--space-sm) 0;"></div>
-        </div>
+        <!-- Category badge directly below KPI -->
         <div class="text-center">
           <span class="badge level-badge level-{{ final_stats.category | lower | replace(' ', '-') | replace('é','e') | replace('É','E') }}">
             {{ final_stats.category }}
@@ -58,13 +52,11 @@
     </div>
 
     {% if leaderboard %}
-      <h2 class="text-center mt-xl mb-md">Podium du jour</h2>
+      <h2 class="podium-title text-center">Podium du jour</h2>
       <!-- PODIUM DU JOUR — fully centered section -->
-      <section style="display:grid; place-items:center; margin-top: var(--space-xl);">
-        <div style="display:grid; gap: var(--space-lg); justify-items:center;">
+      <section class="podium-section">
+        <div class="podium-grid">
           {% for team_data in leaderboard[:3] %}
-            {# Medal color based on podium rank #}
-            {% set medal_color = '#ffd700' if loop.index == 1 else ('#c0c0c0' if loop.index == 2 else '#cd7f32') %}
             {# Derive level class from average score #}
             {% set _avg = team_data.average_score | float %}
             {% set level_class =
@@ -74,27 +66,13 @@
               ('level-moyen' if _avg >= 2 else 'level-insuffisant')))
             %}
 
-            <article
-              class="card {{ level_class }}"
-              style="
-                width:min(92vw, 460px);
-                margin:0 auto;
-                border: 4px solid {{ medal_color }};
-                border-radius: var(--radius-lg, 16px);
-                /* subtle colored halo to emphasize the outline */
-                box-shadow: 0 0 0 3px {{ medal_color }}33;
-              "
-            >
-              <div class="card-header text-center">
-                <h3 class="mb-0" style="display:flex; align-items:center; justify-content:center; gap: 14px;">
-                  <!-- Bigger medal -->
-                  <span aria-hidden="true" style="font-size: clamp(3rem, 9vw, 4rem); line-height: 1;">
+            <article class="card podium-card rank-{{ loop.index }}">
+              <div class="card-header text-center podium-header">
+                <h3 class="mb-0">
+                  <span class="podium-medal" aria-hidden="true">
                     {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% endif %}
                   </span>
-                  <!-- Bigger team name -->
-                  <span style="font-weight:800; font-size: clamp(2.25rem, 8vw, 3.5rem); line-height: 1.1;">
-                    {{ team_data.team_name }}
-                  </span>
+                  <span class="podium-team">{{ team_data.team_name }}</span>
                 </h3>
               </div>
             </article>
