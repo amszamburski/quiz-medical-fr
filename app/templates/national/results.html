@@ -2,6 +2,16 @@
 {% block title %}SFARDLE - Résultats nationaux{% endblock %}
 
 {% block content %}
+{# Compute rank if team is in the leaderboard (available for header badge) #}
+{% set ns = namespace(rank=None) %}
+{% if leaderboard %}
+  {% for td in leaderboard %}
+    {% if td.team_name == team %}
+      {% set ns.rank = loop.index %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
 <!-- Center the whole page content in the viewport -->
 <main style="min-height:100svh; display:grid; place-items:center;">
 
@@ -11,19 +21,16 @@
         <div class="brand-header brand-header--stack">
           <img src="{{ url_for('static', filename='images/sfardle-logo.png') }}" alt="SFARDLE" class="brand-logo brand-logo-xxxxl" />
           <h1 class="brand-title-inverse" style="margin-top: var(--space-sm);">Challenge national</h1>
+          <div class="brand-meta" style="margin-top: var(--space-sm);">
+            <span class="badge badge-soft">
+              Votre équipe&nbsp; {{ team }}{% if ns.rank is not none %} se classe au rang&nbsp; {{ ns.rank }}{% endif %}
+            </span>
+          </div>
         </div>
       </div>
 
       <div class="card-content">
-        {# Compute rank if team is in the leaderboard #}
-        {% set ns = namespace(rank=None) %}
-        {% if leaderboard %}
-          {% for td in leaderboard %}
-            {% if td.team_name == team %}
-              {% set ns.rank = loop.index %}
-            {% endif %}
-          {% endfor %}
-        {% endif %}
+        
 
         <!-- Already centered KPI card -->
         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-lg); align-items: stretch;">
@@ -51,6 +58,7 @@
     </div>
 
     {% if leaderboard %}
+      <h2 class="text-center mt-xl mb-md">Podium du jour</h2>
       <!-- PODIUM DU JOUR — fully centered section -->
       <section style="display:grid; place-items:center; margin-top: var(--space-xl);">
         <div style="display:grid; gap: var(--space-lg); justify-items:center;">
@@ -58,21 +66,14 @@
             {% set ring_color = '#ffd700' if loop.index == 1 else ('#c0c0c0' if loop.index == 2 else '#cd7f32') %}
 
             <article class="card" style="width:min(92vw, 420px); margin:0 auto;">
+              <div class="card-header text-center">
+                <h3 class="mb-0">{{ team_data.team_name }}</h3>
+              </div>
               <div class="card-content" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
 
                 <!-- Medal -->
                 <div style="font-size:clamp(3rem, 8vw, 5rem); line-height:1;">
                   {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% endif %}
-                </div>
-
-                <!-- Team name -->
-                <div style="font-weight:800; font-size:clamp(1.6rem, 4.5vw, var(--font-size-4xl)); line-height:1.15; margin-top:var(--space-xs);">
-                  {{ team_data.team_name }}
-                </div>
-
-                <!-- Player count -->
-                <div class="text-secondary" style="font-size:var(--font-size-sm); margin-top:2px;">
-                  {{ team_data.player_count }} participant{% if team_data.player_count > 1 %}s{% endif %}
                 </div>
 
                 {% set avg = team_data.average_score %}
@@ -93,6 +94,11 @@
                       {{ (avg | float) | round(1) }}
                     </text>
                   </svg>
+                </div>
+
+                <!-- Player count moved beneath the score ring -->
+                <div class="text-secondary" style="font-size:var(--font-size-sm); margin-top: var(--space-sm);">
+                  {{ team_data.player_count }} participant{% if team_data.player_count > 1 %}s{% endif %}
                 </div>
               </div>
             </article>
