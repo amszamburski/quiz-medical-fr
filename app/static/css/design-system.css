@@ -426,6 +426,28 @@ p {
   text-align: center;
 }
 
+/* Gradient leaderboard header (nice blue blend) */
+.leaderboard-header-gradient {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, #60a5fa 100%);
+  color: var(--text-inverse);
+  box-shadow: 0 6px 16px rgba(10,108,255,0.2) inset;
+}
+
+.leaderboard-header-gradient .subtitle {
+  color: rgba(255,255,255,0.9);
+}
+
+/* Leaderboard container with soft gradient */
+.leaderboard--gradient {
+  background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%);
+  border: 1px solid var(--accent-primary-light);
+}
+
+/* Gentle hover gradient for non-podium items */
+.leaderboard .leaderboard-item:not(.rank-1):not(.rank-2):not(.rank-3):hover {
+  background: linear-gradient(180deg, #f9fbff 0%, #eef5ff 100%);
+}
+
 .leaderboard-item {
   display: flex;
   align-items: center;
@@ -543,11 +565,57 @@ p {
   gap: var(--space-md);
 }
 
+.brand-header--stack {
+  flex-direction: column;
+  justify-content: center;
+}
+
 .brand-logo {
   width: 44px;
   height: 44px;
   border-radius: 10px;
   box-shadow: var(--shadow-sm);
+}
+
+.brand-logo-xl {
+  width: 72px;
+  height: 72px;
+}
+
+.brand-logo-xxl {
+  width: 96px;
+  height: 96px;
+}
+
+/* Extra large hero logo and header spacing */
+.brand-logo-xxxl {
+  width: 128px;
+  height: 128px;
+}
+
+.brand-logo-xxxxl {
+  width: 160px;
+  height: 160px;
+}
+
+.results-hero {
+  padding-top: var(--space-2xl);
+  padding-bottom: var(--space-2xl);
+}
+
+.results-hero--xl {
+  padding-top: var(--space-3xl);
+  padding-bottom: var(--space-3xl);
+}
+
+.badge-lg {
+  padding: 6px 12px;
+  font-size: var(--font-size-base);
+}
+
+.badge-xl {
+  padding: 8px 14px;
+  font-size: var(--font-size-lg);
 }
 
 .brand-title {
@@ -560,6 +628,15 @@ p {
   background-clip: text;
   color: transparent;
   filter: drop-shadow(0 1px 0 rgba(0,0,0,0.08));
+}
+
+.brand-title-inverse {
+  margin: 0;
+  font-size: var(--font-size-4xl);
+  line-height: 1.1;
+  letter-spacing: 0.5px;
+  color: var(--text-inverse);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.05);
 }
 
 .brand-meta {
@@ -590,6 +667,22 @@ p {
   .brand-logo {
     width: 40px;
     height: 40px;
+  }
+  .brand-logo-xl {
+    width: 56px;
+    height: 56px;
+  }
+  .brand-logo-xxl {
+    width: 72px;
+    height: 72px;
+  }
+  .brand-logo-xxxl {
+    width: 96px;
+    height: 96px;
+  }
+  .brand-logo-xxxxl {
+    width: 120px;
+    height: 120px;
   }
 }
 
