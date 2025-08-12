@@ -271,6 +271,17 @@ p {
   min-height: 44px; /* Touch target size */
 }
 
+/* Ensure placeholder matches app typography/colors */
+.form-control::placeholder {
+  color: var(--text-secondary);
+  opacity: 1; /* avoid overly faint placeholder */
+}
+/* Legacy prefixes for broader compatibility */
+.form-control::-webkit-input-placeholder { color: var(--text-secondary); }
+.form-control::-moz-placeholder { color: var(--text-secondary); }
+.form-control:-ms-input-placeholder { color: var(--text-secondary); }
+.form-control::-ms-input-placeholder { color: var(--text-secondary); }
+
 .form-control:focus {
   outline: none;
   border-color: var(--accent-primary);
@@ -522,6 +533,63 @@ p {
   .btn-large {
     width: 100%;
     margin-bottom: var(--space-sm);
+  }
+}
+
+/* Brand header styles */
+.brand-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.brand-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+}
+
+.brand-title {
+  margin: 0;
+  font-size: var(--font-size-4xl);
+  line-height: 1.1;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, var(--accent-primary) 0%, #00a3ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,0.08));
+}
+
+.brand-meta {
+  margin-top: var(--space-sm);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.badge-soft {
+  background: var(--accent-primary-light);
+  color: var(--accent-primary);
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 639px) {
+  .brand-title {
+    font-size: var(--font-size-3xl);
+  }
+  .brand-logo {
+    width: 40px;
+    height: 40px;
   }
 }
 

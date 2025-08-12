@@ -47,15 +47,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Spinner when starting personal challenge from topic selection
   var startForm = document.getElementById('personal-topics-form') || document.querySelector('form[action$="select_topic"]');
-  if (startForm) {
-    startForm.addEventListener('submit', function () {
-      var btn = document.querySelector('button[form="' + startForm.id + '"]') || startForm.querySelector('button[type="submit"]');
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Préparation…';
-      }
-      showOverlay('Préparation du challenge personnel…');
+  function handleStartSubmit(e) {
+    if (e) e.preventDefault();
+    var form = startForm;
+    if (!form) return;
+    var btn = document.querySelector('button[form="' + form.id + '"]') || form.querySelector('button[type="submit"]');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Préparation…';
+    }
+    showOverlay('Préparation du challenge personnel…');
+    // Ensure overlay paints before navigation (iOS Safari)
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        form.submit();
+      });
     });
+  }
+  if (startForm) {
+    startForm.addEventListener('submit', handleStartSubmit, { capture: true });
+    // Also bind to the external submit button (with form attribute) for older mobile browsers
+    var externalBtn = document.querySelector('button[form="' + startForm.id + '"]');
+    if (externalBtn) {
+      externalBtn.addEventListener('click', function(e){
+        handleStartSubmit(e);
+      }, { passive: false });
+    }
   }
 
   // Spinner when requesting a new personal question from results page

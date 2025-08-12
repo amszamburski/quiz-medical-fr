@@ -5,16 +5,17 @@
 <div style="max-width: 800px; margin: 0 auto;">
     <div class="card">
         <div class="card-header">
-            <h1 class="mb-sm">SFARDLE</h1>
-            {% if contest_type == 'national' %}
-                <p class="mb-0" style="color: var(--text-secondary);">
-                    <strong>Équipe:</strong> {{ team }}
-                </p>
-            {% elif contest_type == 'personal' %}
-                <p class="mb-0" style="color: var(--text-secondary);">
-                    <strong>Sujet:</strong> {{ topic | inline_bold }}
-                </p>
-            {% endif %}
+            <div class="brand-header">
+              <img src="{{ url_for('static', filename='images/sfardle-logo.png') }}" alt="SFARDLE" class="brand-logo" />
+              <h1 class="brand-title">SFARDLE</h1>
+            </div>
+            <div class="brand-meta">
+              {% if contest_type == 'national' %}
+                <span class="badge badge-soft">Équipe&nbsp;: {{ team }}</span>
+              {% elif contest_type == 'personal' %}
+                <span class="badge badge-soft">{{ topic | inline_bold }}</span>
+              {% endif %}
+            </div>
         </div>
     </div>
 
@@ -49,11 +50,8 @@
                     <textarea name="answer" id="answer" required
                               class="form-control"
                               style="min-height: 120px; resize: vertical;"
-                              placeholder="Rédigez votre réponse la plus détaillée possible. Mentionnez le diagnostic, la prise en charge, les traitements recommandés selon les guidelines SFAR..."
+                              placeholder="Rédigez votre réponse la plus détaillée possible. Plus votre réponse est précise et complète, meilleur sera votre score ..."
                               aria-describedby="answer-help"></textarea>
-                    <div id="answer-help" style="font-size: var(--font-size-sm); color: var(--text-muted); margin-top: var(--space-xs);">
-                        Plus votre réponse est précise et complète, meilleur sera votre score
-                    </div>
                 </div>
 
                 <div style="display:flex; gap: var(--space-md); justify-content: space-between; align-items: center; flex-wrap: wrap;">

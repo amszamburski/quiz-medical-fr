@@ -72,7 +72,7 @@ class OpenAIClient:
                 },
             ]
 
-            response = self.chat_completion(messages, temperature=0.8, max_tokens=4000)
+            response = self.chat_completion(messages, temperature=0.7, max_tokens=4000)
             if not response:
                 return None
 
