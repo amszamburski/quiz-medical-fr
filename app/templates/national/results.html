@@ -1,72 +1,114 @@
 {% extends "base.html" %}
-{% block title %}SFARDLE - Résultats finaux{% endblock %}
+{% block title %}SFARDLE - Résultats nationaux{% endblock %}
 
 {% block content %}
-<div style="max-width: 900px; margin: 0 auto;">
+<!-- Center the whole page content in the viewport -->
+<main style="min-height:100svh; display:grid; place-items:center;">
+
+  <div style="max-width: 1100px; width:100%; margin: 0 auto;">
     <div class="card">
-        <div class="card-header text-center results-hero results-hero--xl" style="background: linear-gradient(135deg, var(--accent-primary), #60a5fa); color: var(--text-inverse);">
-            <div class="brand-header brand-header--stack">
-              <img src="{{ url_for('static', filename='images/sfardle-logo.png') }}" alt="SFARDLE" class="brand-logo brand-logo-xxxxl" />
+      <div class="card-header text-center results-hero results-hero--xl leaderboard-header-gradient" style="color: var(--text-inverse);">
+        <div class="brand-header brand-header--stack">
+          <img src="{{ url_for('static', filename='images/sfardle-logo.png') }}" alt="SFARDLE" class="brand-logo brand-logo-xxxxl" />
+          <h1 class="brand-title-inverse" style="margin-top: var(--space-sm);">Challenge national</h1>
+        </div>
+      </div>
+
+      <div class="card-content">
+        {# Compute rank if team is in the leaderboard #}
+        {% set ns = namespace(rank=None) %}
+        {% if leaderboard %}
+          {% for td in leaderboard %}
+            {% if td.team_name == team %}
+              {% set ns.rank = loop.index %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+        <!-- Already centered KPI card -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-lg); align-items: stretch;">
+          <div class="card level-card level-{{ final_stats.category | lower | replace(' ', '-') | replace('é','e') | replace('É','E') }}"
+               style="border: 1px solid var(--border); border-left: 6px solid var(--level-color); border-right: 6px solid var(--level-color); justify-self:center; width:100%; max-width:520px;">
+            <div class="card-content">
+              <div class="text-center" style="padding: var(--space-lg) 0;">
+                <div class="score-value">{{ final_stats.total_score }}/{{ final_stats.max_possible }}</div>
+                <div class="score-label">Votre performance</div>
+              </div>
             </div>
-            <div class="brand-meta" style="margin-top: var(--space-sm);">
-                <span class="badge badge-soft badge-xl">Équipe&nbsp;: {{ team }}</span>
-            </div>
+          </div>
         </div>
 
-        <div class="card-content">
-            <div class="score-display" style="box-shadow: none;">
-                <div class="score-value">{{ final_stats.total_score }}/{{ final_stats.max_possible }}</div>
-                <div class="score-label">Score obtenu</div>
-            </div>
+        <!-- Tiny separator + category badge centered below the card -->
+        <div style="display:flex; justify-content:center;">
+          <div style="width:72px; height:2px; background:var(--border); margin: var(--space-sm) 0;"></div>
         </div>
+        <div class="text-center">
+          <span class="badge level-badge level-{{ final_stats.category | lower | replace(' ', '-') | replace('é','e') | replace('É','E') }}">
+            {{ final_stats.category }}
+          </span>
+        </div>
+      </div>
     </div>
 
     {% if leaderboard %}
-    <div class="leaderboard leaderboard--gradient">
-        <div class="leaderboard-header leaderboard-header-gradient">
-            <h2 class="mb-0">Classement des équipes</h2>
-            <div class="subtitle" style="font-size: var(--font-size-sm); opacity: .95;">Aujourd'hui</div>
+      <!-- PODIUM DU JOUR — fully centered section -->
+      <section style="display:grid; place-items:center; margin-top: var(--space-xl);">
+        <div style="display:grid; gap: var(--space-lg); justify-items:center;">
+          {% for team_data in leaderboard[:3] %}
+            {% set ring_color = '#ffd700' if loop.index == 1 else ('#c0c0c0' if loop.index == 2 else '#cd7f32') %}
+
+            <article class="card" style="width:min(92vw, 420px); margin:0 auto;">
+              <div class="card-content" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+
+                <!-- Medal -->
+                <div style="font-size:clamp(3rem, 8vw, 5rem); line-height:1;">
+                  {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% endif %}
+                </div>
+
+                <!-- Team name -->
+                <div style="font-weight:800; font-size:clamp(1.6rem, 4.5vw, var(--font-size-4xl)); line-height:1.15; margin-top:var(--space-xs);">
+                  {{ team_data.team_name }}
+                </div>
+
+                <!-- Player count -->
+                <div class="text-secondary" style="font-size:var(--font-size-sm); margin-top:2px;">
+                  {{ team_data.player_count }} participant{% if team_data.player_count > 1 %}s{% endif %}
+                </div>
+
+                {% set avg = team_data.average_score %}
+                {% set circ = 2 * 3.1416 * 42 %}
+                {% set frac = (avg | float) / 5.0 %}
+                {% set offset = circ * (1 - frac) %}
+
+                <!-- Centered ring -->
+                <div style="width:120px; height:120px; margin:var(--space-md) 0 0 0;">
+                  <svg width="120" height="120" viewBox="0 0 100 100" style="display:block;">
+                    <circle cx="50" cy="50" r="42" stroke="var(--border)" stroke-width="12" fill="none"/>
+                    <circle cx="50" cy="50" r="42"
+                            stroke="{{ ring_color }}" stroke-width="12" fill="none" stroke-linecap="round"
+                            transform="rotate(-90 50 50)"
+                            stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ offset }}"/>
+                    <text x="50" y="50" text-anchor="middle" dominant-baseline="middle"
+                          style="font-weight:700; font-size:22px; fill: var(--text-primary);">
+                      {{ (avg | float) | round(1) }}
+                    </text>
+                  </svg>
+                </div>
+              </div>
+            </article>
+          {% endfor %}
         </div>
-        
-        {% for team_data in leaderboard %}
-        <div class="leaderboard-item {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
-            <div style="display: flex; align-items: center;">
-                <div class="leaderboard-rank">
-                    {% if loop.index == 1 %}🥇
-                    {% elif loop.index == 2 %}🥈
-                    {% elif loop.index == 3 %}🥉
-                    {% else %}{{ loop.index }}.
-                    {% endif %}
-                </div>
-                <div class="leaderboard-team" style="font-size: var(--font-size-3xl); font-weight: 700;">{{ team_data.team_name }}</div>
-            </div>
-            <div class="leaderboard-score">
-                <div style="font-weight: 700; font-size: var(--font-size-3xl);">
-                    {{ team_data.average_score }}/5
-                </div>
-                <div style="font-size: var(--font-size-sm); opacity: 0.8;">
-                    {{ team_data.player_count }} participant{% if team_data.player_count > 1 %}s{% endif %}
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+      </section>
     {% endif %}
 
-     <div class="alert alert-info mt-lg text-center">
-        <h3 class="mb-md">Prochain SFARDLE demain!</h3>
-        
+    <div class="alert alert-info mt-lg text-center">
+      <h3 class="mb-md">Prochain SFARDLE demain !</h3>
     </div>
 
-    <div class="text-center mt-xl">
-        <a href="{{ url_for('national.leaderboard') }}" class="btn btn-secondary">
-            Classement complet
-        </a>
-        <a href="{{ url_for('main.index') }}" class="btn btn-primary">
-            Retour à l'accueil
-        </a>
+    <div class="text-center mt-xl" style="display:flex; gap: var(--space-md); justify-content:center; flex-wrap: wrap;">
+      <a href="{{ url_for('national.leaderboard') }}" class="btn btn-secondary btn-large">Classement complet</a>
+      <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-large">Retour à l'accueil</a>
     </div>
-    
-   
-</div>
+  </div>
+</main>
 {% endblock %}
