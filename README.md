@@ -98,7 +98,7 @@ app/
 │   ├── constants.py # Constantes (équipes CHU, etc.)
 │   ├── db.py        # Chargement des données CSV
 │   ├── openai_client.py # Client OpenAI avec retry
-│   ├── prompts.py   # Prompts pour GPT-4o
+│   ├── prompts.py   # Prompts pour GPT-5
 │   ├── vignette.py  # Génération de vignettes
 │   ├── scorer.py    # Évaluation des réponses
 │   └── scoreboard.py # Système de classement
@@ -107,7 +107,9 @@ app/
 
 ## API OpenAI
 
-L'application utilise GPT-4o pour :
+Toutes les requêtes utilisent GPT-5 via l'API Responses avec un niveau de raisonnement fixé à `low` (`reasoning.effort = "low"`).
+
+L'application utilise GPT-5 pour :
 
 1. **Génération de vignettes** : Création de cas cliniques réalistes
 2. **Évaluation de réponses** : Notation sur 20 avec feedback

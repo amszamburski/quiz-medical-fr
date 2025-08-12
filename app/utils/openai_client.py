@@ -20,8 +20,8 @@ class OpenAIClient:
             print(f"OpenAI client initialization failed: {e}")
             raise
 
-        # Default to GPT-5 for all API calls (can be overridden via env)
-        self.model = os.getenv("OPENAI_MODEL", "gpt-5")
+        # Harmonized: force GPT-5 for all API calls
+        self.model = "gpt-5"
 
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
@@ -29,27 +29,28 @@ class OpenAIClient:
     def chat_completion(
         self, messages: list, temperature: float = 0.7, max_tokens: int = 4000
     ) -> Optional[str]:
-        """Make a chat completion request with retry logic."""
+        """Make a completion request (Responses API) with retry logic."""
         try:
             print(
                 f"DEBUG: Making OpenAI API call with {len(messages)} messages, max_tokens={max_tokens}"
             )
-            # Configure parameters depending on model family
-            # Reasoning-style models (e.g., o1/o3, gpt-5*) require max_completion_tokens
-            uses_reasoning_params = self.model in {"o1", "o3"} or self.model.startswith("gpt-5")
-            completion_params = {
-                "model": self.model,
-                "messages": messages,
-            }
-            if uses_reasoning_params:
-                completion_params["max_completion_tokens"] = max_tokens
-                # Some reasoning models ignore or do not accept temperature; omit to avoid errors
-            else:
-                completion_params["max_tokens"] = max_tokens
-                completion_params["temperature"] = temperature
 
-            response = self.client.chat.completions.create(**completion_params)
-            content = response.choices[0].message.content
+            # Compile messages into a single input string for the Responses API
+            compiled_input = "\n".join(
+                f"{m.get('role', 'user').upper()}: {m.get('content', '')}" for m in messages
+            )
+
+            response = self.client.responses.create(
+                model=self.model,
+                input=compiled_input,
+                # Use Responses API token parameter name
+                max_output_tokens=max_tokens,
+                reasoning={"effort": "low"},
+                # Omit temperature for GPT-5 to avoid incompatibility
+            )
+
+            # Unified text accessor for Responses API
+            content = getattr(response, "output_text", None)
             print(
                 f"DEBUG: OpenAI API response received, length: {len(content) if content else 0}"
             )
