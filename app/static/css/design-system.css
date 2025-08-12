@@ -362,6 +362,23 @@ p {
   border-left: 6px solid var(--level-color);
 }
 
+/* Soft shaded backgrounds for cards based on score level */
+.card.level-excellent {
+  background: rgba(22, 163, 74, 0.08);
+}
+.card.level-tres-bien {
+  background: rgba(34, 197, 94, 0.08);
+}
+.card.level-bien {
+  background: rgba(234, 179, 8, 0.10);
+}
+.card.level-moyen {
+  background: rgba(249, 115, 22, 0.08);
+}
+.card.level-insuffisant {
+  background: rgba(239, 68, 68, 0.08);
+}
+
 .level-badge {
   background: var(--level-color);
   color: #fff;

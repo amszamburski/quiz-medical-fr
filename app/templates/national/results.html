@@ -23,7 +23,7 @@
           <h1 class="brand-title-inverse" style="margin-top: var(--space-sm);">Challenge national</h1>
           <div class="brand-meta" style="margin-top: var(--space-sm);">
             <span class="badge badge-soft">
-              Votre équipe&nbsp; {{ team }}{% if ns.rank is not none %} se classe au rang&nbsp; {{ ns.rank }}{% endif %}
+              Votre équipe&nbsp;{{ team }}{% if ns.rank is not none %} se classe au rang&nbsp; {{ ns.rank }}{% endif %}
             </span>
           </div>
         </div>
@@ -63,43 +63,39 @@
       <section style="display:grid; place-items:center; margin-top: var(--space-xl);">
         <div style="display:grid; gap: var(--space-lg); justify-items:center;">
           {% for team_data in leaderboard[:3] %}
-            {% set ring_color = '#ffd700' if loop.index == 1 else ('#c0c0c0' if loop.index == 2 else '#cd7f32') %}
+            {# Medal color based on podium rank #}
+            {% set medal_color = '#ffd700' if loop.index == 1 else ('#c0c0c0' if loop.index == 2 else '#cd7f32') %}
+            {# Derive level class from average score #}
+            {% set _avg = team_data.average_score | float %}
+            {% set level_class =
+              'level-excellent' if _avg >= 4.5 else
+              ('level-tres-bien' if _avg >= 3.75 else
+              ('level-bien' if _avg >= 3 else
+              ('level-moyen' if _avg >= 2 else 'level-insuffisant')))
+            %}
 
-            <article class="card" style="width:min(92vw, 420px); margin:0 auto;">
+            <article
+              class="card {{ level_class }}"
+              style="
+                width:min(92vw, 460px);
+                margin:0 auto;
+                border: 4px solid {{ medal_color }};
+                border-radius: var(--radius-lg, 16px);
+                /* subtle colored halo to emphasize the outline */
+                box-shadow: 0 0 0 3px {{ medal_color }}33;
+              "
+            >
               <div class="card-header text-center">
-                <h3 class="mb-0">{{ team_data.team_name }}</h3>
-              </div>
-              <div class="card-content" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
-
-                <!-- Medal -->
-                <div style="font-size:clamp(3rem, 8vw, 5rem); line-height:1;">
-                  {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% endif %}
-                </div>
-
-                {% set avg = team_data.average_score %}
-                {% set circ = 2 * 3.1416 * 42 %}
-                {% set frac = (avg | float) / 5.0 %}
-                {% set offset = circ * (1 - frac) %}
-
-                <!-- Centered ring -->
-                <div style="width:120px; height:120px; margin:var(--space-md) 0 0 0;">
-                  <svg width="120" height="120" viewBox="0 0 100 100" style="display:block;">
-                    <circle cx="50" cy="50" r="42" stroke="var(--border)" stroke-width="12" fill="none"/>
-                    <circle cx="50" cy="50" r="42"
-                            stroke="{{ ring_color }}" stroke-width="12" fill="none" stroke-linecap="round"
-                            transform="rotate(-90 50 50)"
-                            stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ offset }}"/>
-                    <text x="50" y="50" text-anchor="middle" dominant-baseline="middle"
-                          style="font-weight:700; font-size:22px; fill: var(--text-primary);">
-                      {{ (avg | float) | round(1) }}
-                    </text>
-                  </svg>
-                </div>
-
-                <!-- Player count moved beneath the score ring -->
-                <div class="text-secondary" style="font-size:var(--font-size-sm); margin-top: var(--space-sm);">
-                  {{ team_data.player_count }} participant{% if team_data.player_count > 1 %}s{% endif %}
-                </div>
+                <h3 class="mb-0" style="display:flex; align-items:center; justify-content:center; gap: 14px;">
+                  <!-- Bigger medal -->
+                  <span aria-hidden="true" style="font-size: clamp(3rem, 9vw, 4rem); line-height: 1;">
+                    {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% endif %}
+                  </span>
+                  <!-- Bigger team name -->
+                  <span style="font-weight:800; font-size: clamp(2.25rem, 8vw, 3.5rem); line-height: 1.1;">
+                    {{ team_data.team_name }}
+                  </span>
+                </h3>
               </div>
             </article>
           {% endfor %}
