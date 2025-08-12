@@ -11,9 +11,33 @@ personal_bp = Blueprint("personal", __name__)
 
 @personal_bp.route("/")
 def index():
-    """Personal contest landing page with topic selection."""
+    """Personal contest landing page with topic selection, grouped by Theme."""
+    # Default flat topics (fallback)
     topics = list_topics()
-    return render_template("personal/index.html", topics=topics)
+    topics_by_theme = {}
+    try:
+        df = recommendations_db.get_all_recommendations()
+        themes = recommendations_db.list_themes()
+        for theme in themes:
+            try:
+                theme_topics = (
+                    df[df["Theme"] == theme]["Topic"].dropna().unique().tolist()
+                )
+                theme_topics = sorted(theme_topics)
+            except Exception:
+                theme_topics = []
+            if theme_topics:
+                topics_by_theme[theme] = theme_topics
+        # Fallback bucket when no theme grouping found
+        if not topics_by_theme and topics:
+            topics_by_theme["Autres"] = topics
+    except Exception:
+        # If grouping fails, keep flat list
+        topics_by_theme = {"Autres": topics}
+
+    return render_template(
+        "personal/index.html", topics=topics, topics_by_theme=topics_by_theme
+    )
 
 
 @personal_bp.route("/select_topic", methods=["POST"])

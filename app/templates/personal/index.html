@@ -10,22 +10,49 @@
     <div class="card-content">
       <form id="personal-topics-form" method="POST" action="{{ url_for('personal.select_topic') }}" class="text-center">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <div class="topic-grid">
-          {% for topic in topics %}
-          {% set parts = topic | topic_parts %}
-          <label class="topic-card">
-            <input type="checkbox" name="topics" value="{{ topic }}" />
-            <span class="card-bg"></span>
-            <span class="check" aria-hidden="true"></span>
-            <span class="text" style="display:flex; flex-direction:column; align-items:center;">
-              <span class="title" style="font-weight:700;">{{ parts[0] }}</span>
-              {% if parts[1] %}
-              <span class="subtitle" style="font-size: var(--font-size-sm); color: var(--text-secondary);">{{ parts[1] }}</span>
-              {% endif %}
-            </span>
-          </label>
+
+        {% if topics_by_theme %}
+          {% for theme, tlist in topics_by_theme.items() %}
+            <div class="theme-header">
+              <span class="badge badge-soft badge-hero">{{ theme }}</span>
+            </div>
+            <section class="theme-section">
+              <div class="topic-grid">
+                {% for topic in tlist %}
+                {% set parts = topic | topic_parts %}
+                <label class="topic-card">
+                  <input type="checkbox" name="topics" value="{{ topic }}" />
+                  <span class="card-bg"></span>
+                  <span class="check" aria-hidden="true"></span>
+                  <span class="text">
+                    <span class="title">{{ parts[0] }}</span>
+                    {% if parts[1] %}
+                    <span class="subtitle">{{ parts[1] }}</span>
+                    {% endif %}
+                  </span>
+                </label>
+                {% endfor %}
+              </div>
+            </section>
           {% endfor %}
-        </div>
+        {% else %}
+          <div class="topic-grid">
+            {% for topic in topics %}
+            {% set parts = topic | topic_parts %}
+            <label class="topic-card">
+              <input type="checkbox" name="topics" value="{{ topic }}" />
+              <span class="card-bg"></span>
+              <span class="check" aria-hidden="true"></span>
+              <span class="text">
+                <span class="title">{{ parts[0] }}</span>
+                {% if parts[1] %}
+                <span class="subtitle">{{ parts[1] }}</span>
+                {% endif %}
+              </span>
+            </label>
+            {% endfor %}
+          </div>
+        {% endif %}
       </form>
     </div>
   </div>
