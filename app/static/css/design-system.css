@@ -839,8 +839,26 @@ a:hover { text-decoration-thickness: 2px; }
   padding: var(--space-md);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  background: var(--surface);
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
   margin-bottom: var(--space-xl);
+  position: relative;
+  overflow: hidden;
+}
+.theme-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px; /* hairline divider */
+  background: linear-gradient(90deg,
+    rgba(10, 108, 255, 0.12) 0%,
+    rgba(10, 108, 255, 0.05) 50%,
+    rgba(10, 108, 255, 0.12) 100%
+  );
+  /* Render visually thinner on high-DPI screens */
+  transform: scaleY(0.5);
+  transform-origin: top center;
 }
 .theme-section .topic-grid { margin-bottom: 0; }
 
