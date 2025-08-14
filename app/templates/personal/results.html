@@ -40,26 +40,31 @@
           <div style="margin-bottom: var(--space-sm);">
             <div style="display:flex; justify-content:space-between; font-size: var(--font-size-sm); color: var(--text-secondary);">
               <span>Progression</span>
-              <span>{{ stat.answered_count }} / {{ stat.total_available }}</span>
             </div>
-            {# Safe guards for zero totals; segmented base uses --segments #}
+            {# Safe guards for zero totals; ring uses --segments #}
             {% set _total = stat.total_available %}
             {% set _ans = stat.answered_count %}
             {% set _segments = _total if _total > 0 else 1 %}
+            {% set _active = _ans if _ans <= _segments else _segments %}
+            {# values computed directly in SVG for robustness #}
 
-            <div
-              class="meter level-{{ stat.level }}"
-              role="progressbar"
-              aria-valuemin="0"
-              aria-valuemax="{{ _segments }}"
-              aria-valuenow="{{ _ans }}"
-              aria-label="Progression: {{ _ans }} of {{ _total }} answered"
-              style="--segments: {{ _segments }}; --active: {{ _ans }};"
-            >
-              <div class="fill base level-{{ stat.level }}" aria-hidden="true"></div>
-              <div class="fill fg level-{{ stat.level }}"
-                   style="width: min(100%, calc(100% * var(--active) / var(--segments)));"
-                   aria-hidden="true"></div>
+            <!-- SVG ring (dashoffset method for robust rendering) -->
+            <div class="level-{{ stat.level }}" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="{{ _segments }}" aria-valuenow="{{ _active }}" style="width:96px; height:96px; margin-top: var(--space-sm);">
+              <svg width="96" height="96" viewBox="0 0 100 100" style="display:block;">
+                <!-- track -->
+                <circle cx="50" cy="50" r="42" stroke="var(--border)" stroke-width="10" fill="none" />
+                <!-- progress arc -->
+                <circle cx="50" cy="50" r="42"
+                        stroke="var(--level-color, var(--accent-primary))" stroke-width="10" fill="none" stroke-linecap="round"
+                        transform="rotate(-90 50 50)"
+                        stroke-dasharray="{{ (2 * 3.1416 * 42) | round(3) }}"
+                        stroke-dashoffset="{{ ((2 * 3.1416 * 42) * (1 - ((_active | float) / (_segments | float)))) | round(3) }}" />
+                <!-- centered value -->
+                <text x="50" y="50" text-anchor="middle" dominant-baseline="middle"
+                      style="font-weight:700; font-size:18px; fill: var(--text-primary);">
+                  {{ _ans }}/{{ _total }}
+                </text>
+              </svg>
             </div>
           </div>
         </div>
