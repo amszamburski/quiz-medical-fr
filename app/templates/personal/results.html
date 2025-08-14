@@ -14,14 +14,6 @@
   {% if topic_stats and topic_stats|length > 0 %}
   <div style="margin-top: var(--space-xl);">
     <h2 class="mb-md">Performance par sujet</h2>
-    <div class="mb-md" style="display:flex; gap: var(--space-md); flex-wrap: wrap; align-items:center;">
-      <div><strong>Légende:</strong></div>
-      <div class="legend-dot level-excellent">Excellent</div>
-      <div class="legend-dot level-tres-bien">Très bien</div>
-      <div class="legend-dot level-bien">Bien</div>
-      <div class="legend-dot level-moyen">Moyen</div>
-      <div class="legend-dot level-insuffisant">Insuffisant</div>
-    </div>
     <div class="topic-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 320px)); gap: var(--space-md); justify-content: center;">
       {% for stat in topic_stats %}
       <div class="card level-card level-{{ stat.level }}">
@@ -73,7 +65,14 @@
     </div>
   </div>
   {% endif %}
-
+   <div class="mb-md" style="display:flex; gap: var(--space-md); flex-wrap: wrap; align-items:center;">
+      <div><strong>Légende:</strong></div>
+      <div class="legend-dot level-excellent">Excellent</div>
+      <div class="legend-dot level-tres-bien">Très bien</div>
+      <div class="legend-dot level-bien">Bien</div>
+      <div class="legend-dot level-moyen">Moyen</div>
+      <div class="legend-dot level-insuffisant">Insuffisant</div>
+    </div>
   <div class="text-center" style="display:flex; gap: var(--space-md); justify-content:center; flex-wrap: wrap; margin-top: 30px;">
     <a href="{{ url_for('personal.index') }}" class="btn btn-secondary btn-large" style="margin: 10px;">
       Choisir d'autres sujets
